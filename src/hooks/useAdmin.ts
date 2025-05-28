@@ -26,14 +26,13 @@ export const useAdmin = () => {
     console.log('Attempting login for email:', email);
     
     try {
-      // Query for admin user with case-insensitive email search using ilike with exact pattern
-      const { data: adminUser, error } = await supabase
+      // Query for admin user with case-insensitive email search using lower() function
+      const { data: adminUsers, error } = await supabase
         .from('admin_users')
         .select('*')
-        .ilike('email', email)
-        .maybeSingle();
+        .eq('email', email.toLowerCase());
 
-      console.log('Database query result:', { adminUser, error });
+      console.log('Database query result:', { adminUsers, error });
 
       if (error) {
         console.error('Database error:', error);
@@ -44,6 +43,9 @@ export const useAdmin = () => {
         });
         return false;
       }
+
+      // Get the first admin user from the results
+      const adminUser = adminUsers && adminUsers.length > 0 ? adminUsers[0] : null;
 
       if (!adminUser) {
         console.log('No admin user found for email:', email);
