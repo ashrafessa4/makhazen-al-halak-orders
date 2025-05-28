@@ -1,16 +1,18 @@
+
 import { useState, useEffect } from 'react';
 import { Order, Product } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { useProducts } from '@/hooks/useProducts';
 import { toast } from 'sonner';
-import { Check, X, Clock } from 'lucide-react';
+import { Check, X, Clock, RotateCcw, ShoppingCart, DollarSign, TrendingUp, Package, Calendar, MapPin, User, Store } from 'lucide-react';
 
 interface AdminDashboardProps {
   orders: Order[];
@@ -22,13 +24,16 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
     totalOrders: 0,
     totalRevenue: 0,
     avgOrderValue: 0,
-    topProducts: [] as { product: Product; sales: number }[]
+    pendingOrders: 0,
+    completedOrders: 0,
+    cancelledOrders: 0,
+    topProducts: [] as { product: Product; sales: number; revenue: number }[]
   });
   const { products } = useProducts();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [statusNote, setStatusNote] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [pendingStatus, setPendingStatus] = useState<'completed' | 'cancelled' | null>(null);
+  const [pendingStatus, setPendingStatus] = useState<'pending' | 'completed' | 'cancelled' | null>(null);
 
   // Fetch orders from database
   useEffect(() => {
@@ -44,7 +49,6 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
           return;
         }
 
-        // Transform database orders to match Order interface
         const transformedOrders: Order[] = data.map(order => ({
           id: order.id,
           orderNumber: order.order_number,
@@ -55,7 +59,7 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
           items: order.items as any,
           total: Number(order.total),
           date: new Date(order.created_at),
-          status: order.status as 'pending' | 'processing' | 'completed'
+          status: order.status as 'pending' | 'processing' | 'completed' | 'cancelled'
         }));
 
         setOrders(transformedOrders);
@@ -69,34 +73,53 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
 
   useEffect(() => {
     const totalOrders = orders.length;
-    const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+    const totalRevenue = orders.filter(o => o.status !== 'cancelled').reduce((sum, order) => sum + order.total, 0);
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    const pendingOrders = orders.filter(o => o.status === 'pending').length;
+    const completedOrders = orders.filter(o => o.status === 'completed').length;
+    const cancelledOrders = orders.filter(o => o.status === 'cancelled').length;
 
-    // Calculate top products
-    const productSales: { [key: string]: number } = {};
-    orders.forEach(order => {
+    // Calculate top products with revenue
+    const productSales: { [key: string]: { quantity: number; revenue: number } } = {};
+    orders.filter(o => o.status !== 'cancelled').forEach(order => {
       if (order.items && Array.isArray(order.items)) {
         order.items.forEach(item => {
           if (item.product && item.product.id) {
-            productSales[item.product.id] = (productSales[item.product.id] || 0) + item.quantity;
+            if (!productSales[item.product.id]) {
+              productSales[item.product.id] = { quantity: 0, revenue: 0 };
+            }
+            productSales[item.product.id].quantity += item.quantity;
+            productSales[item.product.id].revenue += item.quantity * item.product.price;
           }
         });
       }
     });
 
     const topProducts = Object.entries(productSales)
-      .map(([productId, sales]) => {
+      .map(([productId, data]) => {
         const product = products.find(p => p.id === productId);
-        return product ? { product, sales } : null;
+        return product ? { 
+          product, 
+          sales: data.quantity, 
+          revenue: data.revenue 
+        } : null;
       })
       .filter(item => item !== null)
       .sort((a, b) => b!.sales - a!.sales)
-      .slice(0, 5) as { product: Product; sales: number }[];
+      .slice(0, 10) as { product: Product; sales: number; revenue: number }[];
 
-    setStats({ totalOrders, totalRevenue, avgOrderValue, topProducts });
+    setStats({ 
+      totalOrders, 
+      totalRevenue, 
+      avgOrderValue, 
+      pendingOrders,
+      completedOrders,
+      cancelledOrders,
+      topProducts 
+    });
   }, [orders, products]);
 
-  const handleStatusUpdate = async (orderId: string, newStatus: 'completed' | 'cancelled', note: string = '') => {
+  const handleStatusUpdate = async (orderId: string, newStatus: 'pending' | 'completed' | 'cancelled', note: string = '') => {
     try {
       const { error } = await supabase
         .from('orders')
@@ -108,14 +131,14 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
 
       if (error) throw error;
 
-      // Update local state
       setOrders(prev => prev.map(order => 
         order.id === orderId 
           ? { ...order, status: newStatus, notes: note }
           : order
       ));
 
-      toast(`تم ${newStatus === 'completed' ? 'تأكيد' : 'إلغاء'} الطلب بنجاح`);
+      const statusText = newStatus === 'completed' ? 'تأكيد' : newStatus === 'cancelled' ? 'إلغاء' : 'إرجاع إلى الانتظار';
+      toast(`تم ${statusText} الطلب بنجاح`);
       setIsDialogOpen(false);
       setSelectedOrder(null);
       setStatusNote('');
@@ -126,171 +149,377 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
     }
   };
 
-  const openStatusDialog = (order: Order, status: 'completed' | 'cancelled') => {
+  const openStatusDialog = (order: Order, status: 'pending' | 'completed' | 'cancelled') => {
     setSelectedOrder(order);
     setPendingStatus(status);
-    setStatusNote('');
+    setStatusNote(order.notes || '');
     setIsDialogOpen(true);
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-green-100 text-green-800">مكتمل</Badge>;
+        return <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 text-xs px-2 py-0.5">مكتمل</Badge>;
       case 'cancelled':
-        return <Badge className="bg-red-100 text-red-800">ملغي</Badge>;
+        return <Badge className="bg-red-100 text-red-800 border-red-200 text-xs px-2 py-0.5">ملغي</Badge>;
       default:
-        return <Badge className="bg-yellow-100 text-yellow-800">في الانتظار</Badge>;
+        return <Badge className="bg-amber-100 text-amber-800 border-amber-200 text-xs px-2 py-0.5">انتظار</Badge>;
     }
   };
 
-  const recentOrders = orders.slice(0, 5);
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('ar-SA', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  };
+
+  const recentOrders = orders.slice(0, 8);
+  const todayOrders = orders.filter(order => {
+    const today = new Date();
+    const orderDate = new Date(order.date);
+    return orderDate.toDateString() === today.toDateString();
+  });
 
   return (
-    <div className="space-y-4 p-4">
-      <h1 className="text-2xl font-bold text-barber-dark">لوحة التحكم</h1>
+    <div className="space-y-6 p-4 bg-slate-50 min-h-screen">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-slate-800">لوحة التحكم</h1>
+        <div className="text-sm text-slate-600">
+          آخر تحديث: {formatDate(new Date())}
+        </div>
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-4">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">إجمالي الطلبات</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-xl font-bold text-barber-blue">{stats.totalOrders}</div>
+      {/* Compact Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-100 text-xs font-medium">إجمالي الطلبات</p>
+                <p className="text-2xl font-bold">{stats.totalOrders}</p>
+              </div>
+              <ShoppingCart className="h-8 w-8 text-blue-200" />
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="p-4">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">إجمالي المبيعات</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-xl font-bold text-barber-green">₪{stats.totalRevenue.toFixed(2)}</div>
+        <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-0 shadow-lg">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-emerald-100 text-xs font-medium">إجمالي المبيعات</p>
+                <p className="text-2xl font-bold">₪{stats.totalRevenue.toFixed(0)}</p>
+              </div>
+              <DollarSign className="h-8 w-8 text-emerald-200" />
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="p-4">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">متوسط قيمة الطلب</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-xl font-bold text-barber-gold">₪{stats.avgOrderValue.toFixed(2)}</div>
+        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-lg">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-100 text-xs font-medium">متوسط الطلب</p>
+                <p className="text-2xl font-bold">₪{stats.avgOrderValue.toFixed(0)}</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-purple-200" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-amber-500 to-amber-600 text-white border-0 shadow-lg">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-amber-100 text-xs font-medium">في الانتظار</p>
+                <p className="text-2xl font-bold">{stats.pendingOrders}</p>
+              </div>
+              <Clock className="h-8 w-8 text-amber-200" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0 shadow-lg">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-100 text-xs font-medium">مكتملة</p>
+                <p className="text-2xl font-bold">{stats.completedOrders}</p>
+              </div>
+              <Check className="h-8 w-8 text-green-200" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-slate-500 to-slate-600 text-white border-0 shadow-lg">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-100 text-xs font-medium">اليوم</p>
+                <p className="text-2xl font-bold">{todayOrders.length}</p>
+              </div>
+              <Calendar className="h-8 w-8 text-slate-200" />
+            </div>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="recent" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="recent">آخر الطلبات</TabsTrigger>
-          <TabsTrigger value="products">الأكثر مبيعاً</TabsTrigger>
-          <TabsTrigger value="all">جميع الطلبات</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 bg-white border shadow-sm">
+          <TabsTrigger value="recent" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white font-medium">آخر الطلبات</TabsTrigger>
+          <TabsTrigger value="products" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white font-medium">الأكثر مبيعاً</TabsTrigger>
+          <TabsTrigger value="all" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white font-medium">جميع الطلبات</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="recent" className="space-y-3">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">آخر 5 طلبات</CardTitle>
+        <TabsContent value="recent" className="space-y-4 mt-6">
+          <Card className="shadow-sm border-0 bg-white">
+            <CardHeader className="pb-4 border-b bg-slate-50">
+              <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                آخر 8 طلبات
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="p-0">
               {recentOrders.length === 0 ? (
-                <p className="text-center text-gray-500 py-4">لا توجد طلبات بعد</p>
+                <div className="text-center py-12 text-slate-500">
+                  <Package className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                  <p>لا توجد طلبات بعد</p>
+                </div>
               ) : (
-                recentOrders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md text-sm">
-                    <div className="flex-1">
-                      <div className="font-medium">#{order.orderNumber}</div>
-                      <div className="text-xs text-gray-600">{order.customerName} - {order.shopName}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-barber-blue text-sm">₪{order.total}</div>
-                      {getStatusBadge(order.status)}
-                    </div>
-                  </div>
-                ))
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-slate-50">
+                      <TableHead className="text-slate-700 font-semibold">رقم الطلب</TableHead>
+                      <TableHead className="text-slate-700 font-semibold">العميل</TableHead>
+                      <TableHead className="text-slate-700 font-semibold">المتجر</TableHead>
+                      <TableHead className="text-slate-700 font-semibold">المدينة</TableHead>
+                      <TableHead className="text-slate-700 font-semibold">المبلغ</TableHead>
+                      <TableHead className="text-slate-700 font-semibold">الحالة</TableHead>
+                      <TableHead className="text-slate-700 font-semibold">التاريخ</TableHead>
+                      <TableHead className="text-slate-700 font-semibold">إجراءات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentOrders.map((order) => (
+                      <TableRow key={order.id} className="hover:bg-slate-50">
+                        <TableCell className="font-mono text-sm font-medium text-blue-600">#{order.orderNumber}</TableCell>
+                        <TableCell className="font-medium text-slate-800">{order.customerName}</TableCell>
+                        <TableCell className="text-slate-600">{order.shopName}</TableCell>
+                        <TableCell className="text-slate-600">{order.city}</TableCell>
+                        <TableCell className="font-bold text-emerald-600">₪{order.total}</TableCell>
+                        <TableCell>{getStatusBadge(order.status)}</TableCell>
+                        <TableCell className="text-sm text-slate-500">{formatDate(order.date)}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            {order.status === 'pending' && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white"
+                                  onClick={() => openStatusDialog(order, 'completed')}
+                                >
+                                  <Check className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white"
+                                  onClick={() => openStatusDialog(order, 'cancelled')}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </>
+                            )}
+                            {(order.status === 'completed' || order.status === 'cancelled') && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  className="h-7 w-7 p-0 bg-amber-500 hover:bg-amber-600 text-white"
+                                  onClick={() => openStatusDialog(order, 'pending')}
+                                >
+                                  <RotateCcw className="h-3 w-3" />
+                                </Button>
+                                {order.status === 'completed' && (
+                                  <Button
+                                    size="sm"
+                                    className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white"
+                                    onClick={() => openStatusDialog(order, 'cancelled')}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                )}
+                                {order.status === 'cancelled' && (
+                                  <Button
+                                    size="sm"
+                                    className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white"
+                                    onClick={() => openStatusDialog(order, 'completed')}
+                                  >
+                                    <Check className="h-3 w-3" />
+                                  </Button>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="products" className="space-y-3">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">المنتجات الأكثر مبيعاً</CardTitle>
+        <TabsContent value="products" className="space-y-4 mt-6">
+          <Card className="shadow-sm border-0 bg-white">
+            <CardHeader className="pb-4 border-b bg-slate-50">
+              <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                المنتجات الأكثر مبيعاً
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="p-6">
               {stats.topProducts.length === 0 ? (
-                <p className="text-center text-gray-500 py-4">لا توجد مبيعات بعد</p>
+                <div className="text-center py-12 text-slate-500">
+                  <Package className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                  <p>لا توجد مبيعات بعد</p>
+                </div>
               ) : (
-                stats.topProducts.map((item, index) => (
-                  <div key={item.product.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
-                    <div className="flex-shrink-0 w-6 h-6 bg-barber-blue text-white rounded-full flex items-center justify-center text-xs font-bold">
-                      {index + 1}
-                    </div>
-                    <img
-                      src={item.product.image}
-                      alt={item.product.name}
-                      className="w-8 h-8 object-cover rounded"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">{item.product.name}</div>
-                      <div className="text-xs text-gray-600">{item.product.category}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-barber-green text-sm">{item.sales}</div>
-                      <div className="text-xs text-gray-500">₪{item.product.price}</div>
-                    </div>
-                  </div>
-                ))
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {stats.topProducts.map((item, index) => (
+                    <Card key={item.product.id} className="bg-gradient-to-br from-slate-50 to-slate-100 border shadow-sm">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                            {index + 1}
+                          </div>
+                          <img
+                            src={item.product.image}
+                            alt={item.product.name}
+                            className="w-12 h-12 object-cover rounded-lg border-2 border-white shadow-sm"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-sm text-slate-800 truncate">{item.product.name}</div>
+                            <div className="text-xs text-slate-500">{item.product.category}</div>
+                            <div className="flex gap-4 mt-1">
+                              <div className="text-xs">
+                                <span className="font-medium text-blue-600">{item.sales}</span>
+                                <span className="text-slate-500"> قطعة</span>
+                              </div>
+                              <div className="text-xs">
+                                <span className="font-medium text-emerald-600">₪{item.revenue}</span>
+                                <span className="text-slate-500"> ربح</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="all" className="space-y-3">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">جميع الطلبات</CardTitle>
+        <TabsContent value="all" className="space-y-4 mt-6">
+          <Card className="shadow-sm border-0 bg-white">
+            <CardHeader className="pb-4 border-b bg-slate-50">
+              <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5" />
+                جميع الطلبات ({orders.length})
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="p-0">
               {orders.length === 0 ? (
-                <p className="text-center text-gray-500 py-4">لا توجد طلبات بعد</p>
+                <div className="text-center py-12 text-slate-500">
+                  <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                  <p>لا توجد طلبات بعد</p>
+                </div>
               ) : (
-                orders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                    <div className="flex-1">
-                      <div className="font-medium text-sm">#{order.orderNumber}</div>
-                      <div className="text-xs text-gray-600">{order.customerName} - {order.shopName}</div>
-                      <div className="text-xs text-gray-500">{order.city}</div>
-                      {order.notes && <div className="text-xs text-gray-500 mt-1">ملاحظة: {order.notes}</div>}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="text-right">
-                        <div className="font-bold text-barber-blue text-sm">₪{order.total}</div>
-                        {getStatusBadge(order.status)}
-                      </div>
-                      {order.status === 'pending' && (
-                        <div className="flex gap-1">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 w-7 p-0 bg-green-50 hover:bg-green-100 border-green-200"
-                            onClick={() => openStatusDialog(order, 'completed')}
-                          >
-                            <Check className="h-3 w-3 text-green-600" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 w-7 p-0 bg-red-50 hover:bg-red-100 border-red-200"
-                            onClick={() => openStatusDialog(order, 'cancelled')}
-                          >
-                            <X className="h-3 w-3 text-red-600" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))
+                <div className="max-h-96 overflow-y-auto">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-slate-50 z-10">
+                      <TableRow>
+                        <TableHead className="text-slate-700 font-semibold">رقم الطلب</TableHead>
+                        <TableHead className="text-slate-700 font-semibold">العميل</TableHead>
+                        <TableHead className="text-slate-700 font-semibold">المتجر</TableHead>
+                        <TableHead className="text-slate-700 font-semibold">المدينة</TableHead>
+                        <TableHead className="text-slate-700 font-semibold">المبلغ</TableHead>
+                        <TableHead className="text-slate-700 font-semibold">الحالة</TableHead>
+                        <TableHead className="text-slate-700 font-semibold">التاريخ</TableHead>
+                        <TableHead className="text-slate-700 font-semibold">إجراءات</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {orders.map((order) => (
+                        <TableRow key={order.id} className="hover:bg-slate-50">
+                          <TableCell className="font-mono text-sm font-medium text-blue-600">#{order.orderNumber}</TableCell>
+                          <TableCell className="font-medium text-slate-800">{order.customerName}</TableCell>
+                          <TableCell className="text-slate-600">{order.shopName}</TableCell>
+                          <TableCell className="text-slate-600">{order.city}</TableCell>
+                          <TableCell className="font-bold text-emerald-600">₪{order.total}</TableCell>
+                          <TableCell>{getStatusBadge(order.status)}</TableCell>
+                          <TableCell className="text-sm text-slate-500">{formatDate(order.date)}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              {order.status === 'pending' && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white"
+                                    onClick={() => openStatusDialog(order, 'completed')}
+                                  >
+                                    <Check className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white"
+                                    onClick={() => openStatusDialog(order, 'cancelled')}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </>
+                              )}
+                              {(order.status === 'completed' || order.status === 'cancelled') && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    className="h-7 w-7 p-0 bg-amber-500 hover:bg-amber-600 text-white"
+                                    onClick={() => openStatusDialog(order, 'pending')}
+                                  >
+                                    <RotateCcw className="h-3 w-3" />
+                                  </Button>
+                                  {order.status === 'completed' && (
+                                    <Button
+                                      size="sm"
+                                      className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white"
+                                      onClick={() => openStatusDialog(order, 'cancelled')}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                  {order.status === 'cancelled' && (
+                                    <Button
+                                      size="sm"
+                                      className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white"
+                                      onClick={() => openStatusDialog(order, 'completed')}
+                                    >
+                                      <Check className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -300,36 +529,46 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              {pendingStatus === 'completed' ? 'تأكيد الطلب' : 'إلغاء الطلب'}
+            <DialogTitle className="text-slate-800">
+              {pendingStatus === 'completed' && 'تأكيد الطلب'}
+              {pendingStatus === 'cancelled' && 'إلغاء الطلب'}
+              {pendingStatus === 'pending' && 'إرجاع إلى الانتظار'}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-slate-600">
               طلب رقم #{selectedOrder?.orderNumber}
               <br />
-              {pendingStatus === 'completed' 
-                ? 'هل أنت متأكد من تأكيد اكتمال هذا الطلب؟' 
-                : 'هل أنت متأكد من إلغاء هذا الطلب؟'}
+              {pendingStatus === 'completed' && 'هل أنت متأكد من تأكيد اكتمال هذا الطلب؟'}
+              {pendingStatus === 'cancelled' && 'هل أنت متأكد من إلغاء هذا الطلب؟'}
+              {pendingStatus === 'pending' && 'هل أنت متأكد من إرجاع هذا الطلب إلى حالة الانتظار؟'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="note" className="text-sm">ملاحظة (اختيارية)</Label>
+            <Label htmlFor="note" className="text-sm text-slate-700">ملاحظة (اختيارية)</Label>
             <Textarea
               id="note"
               placeholder="أضف ملاحظة..."
               value={statusNote}
               onChange={(e) => setStatusNote(e.target.value)}
-              className="resize-none h-20 text-sm"
+              className="resize-none h-20 text-sm border-slate-200 focus:border-blue-500"
             />
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="text-sm">
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="text-sm border-slate-200 text-slate-600 hover:bg-slate-50">
               إلغاء
             </Button>
             <Button
               onClick={() => selectedOrder && handleStatusUpdate(selectedOrder.id, pendingStatus!, statusNote)}
-              className={`text-sm ${pendingStatus === 'completed' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+              className={`text-sm text-white ${
+                pendingStatus === 'completed' 
+                  ? 'bg-emerald-600 hover:bg-emerald-700' 
+                  : pendingStatus === 'cancelled'
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : 'bg-amber-600 hover:bg-amber-700'
+              }`}
             >
-              {pendingStatus === 'completed' ? 'تأكيد' : 'إلغاء الطلب'}
+              {pendingStatus === 'completed' && 'تأكيد'}
+              {pendingStatus === 'cancelled' && 'إلغاء الطلب'}
+              {pendingStatus === 'pending' && 'إرجاع'}
             </Button>
           </DialogFooter>
         </DialogContent>
