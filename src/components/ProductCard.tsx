@@ -80,7 +80,7 @@ const ProductCard = ({ product, onAddToCart, isAdmin = false }: ProductCardProps
         </div>
       </CardHeader>
       
-      <CardContent className="p-3 flex flex-col justify-between h-full">
+      <CardContent className="p-3 flex flex-col h-full">
         <div className="flex-1 space-y-2">
           <CardTitle className="text-sm font-bold text-barber-dark text-right leading-tight group-hover:text-barber-blue transition-colors duration-200">
             {product.name}
@@ -90,62 +90,61 @@ const ProductCard = ({ product, onAddToCart, isAdmin = false }: ProductCardProps
             {product.description}
           </p>
           
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-center">
             <span className="text-lg font-bold text-barber-green">
               ₪{product.price}
             </span>
           </div>
         </div>
         
-        {!isAdmin && (
-          <div className="mt-3 space-y-2">
-            <div className="flex items-center justify-center gap-2 bg-gray-50 rounded-lg p-1">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="h-6 w-6 p-0 hover:bg-barber-blue hover:text-white transition-colors duration-200"
-              >
-                <Minus className="h-3 w-3" />
-              </Button>
-              
-              <span className="w-6 text-center font-semibold text-sm">
-                {quantity}
-              </span>
-              
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setQuantity(quantity + 1)}
-                className="h-6 w-6 p-0 hover:bg-barber-blue hover:text-white transition-colors duration-200"
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </div>
+        {/* Always show Add to Cart section */}
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center justify-center gap-2 bg-gray-50 rounded-lg p-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              className="h-6 w-6 p-0 hover:bg-barber-blue hover:text-white transition-colors duration-200"
+            >
+              <Minus className="h-3 w-3" />
+            </Button>
+            
+            <span className="w-6 text-center font-semibold text-sm">
+              {quantity}
+            </span>
             
             <Button
-              onClick={handleAddToCart}
-              disabled={isAdding}
-              className={`w-full font-bold py-1.5 rounded-lg transition-all duration-200 transform text-xs ${
-                isAdding 
-                  ? 'bg-green-500 text-white scale-95' 
-                  : 'bg-gradient-to-r from-barber-blue to-barber-green hover:from-barber-blue/90 hover:to-barber-green/90 text-white hover:scale-105'
-              }`}
+              size="sm"
+              variant="outline"
+              onClick={() => setQuantity(quantity + 1)}
+              className="h-6 w-6 p-0 hover:bg-barber-blue hover:text-white transition-colors duration-200"
             >
-              {isAdding ? (
-                <span className="flex items-center justify-center gap-1">
-                  <ShoppingCart className="h-3 w-3" />
-                  تمت الإضافة!
-                </span>
-              ) : (
-                <span className="flex items-center justify-center gap-1">
-                  <ShoppingCart className="h-3 w-3" />
-                  أضف للسلة
-                </span>
-              )}
+              <Plus className="h-3 w-3" />
             </Button>
           </div>
-        )}
+          
+          <Button
+            onClick={handleAddToCart}
+            disabled={isAdding}
+            className={`w-full font-semibold py-2 rounded-lg transition-all duration-200 transform text-sm ${
+              isAdding 
+                ? 'bg-green-500 text-white scale-95' 
+                : 'bg-gradient-to-r from-barber-blue to-barber-green hover:from-barber-blue/90 hover:to-barber-green/90 text-white hover:scale-105'
+            }`}
+          >
+            {isAdding ? (
+              <span className="flex items-center justify-center gap-2">
+                <ShoppingCart className="h-4 w-4" />
+                تمت الإضافة!
+              </span>
+            ) : (
+              <span className="flex items-center justify-center gap-2">
+                <ShoppingCart className="h-4 w-4" />
+                أضف للسلة
+              </span>
+            )}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
