@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Order, Product } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,12 +12,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useProducts } from '@/hooks/useProducts';
 import { toast } from 'sonner';
 import { Check, X, Clock, RotateCcw, ShoppingCart, DollarSign, TrendingUp, Package, Calendar, MapPin, User, Store } from 'lucide-react';
-
 interface AdminDashboardProps {
   orders: Order[];
 }
-
-const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
+const AdminDashboard = ({
+  orders: propOrders
+}: AdminDashboardProps) => {
   const [orders, setOrders] = useState<Order[]>(propOrders);
   const [stats, setStats] = useState({
     totalOrders: 0,
@@ -27,9 +26,15 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
     pendingOrders: 0,
     completedOrders: 0,
     cancelledOrders: 0,
-    topProducts: [] as { product: Product; sales: number; revenue: number }[]
+    topProducts: [] as {
+      product: Product;
+      sales: number;
+      revenue: number;
+    }[]
   });
-  const { products } = useProducts();
+  const {
+    products
+  } = useProducts();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [statusNote, setStatusNote] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -39,16 +44,16 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const { data, error } = await supabase
-          .from('orders')
-          .select('*')
-          .order('created_at', { ascending: false });
-
+        const {
+          data,
+          error
+        } = await supabase.from('orders').select('*').order('created_at', {
+          ascending: false
+        });
         if (error) {
           console.error('Error fetching orders:', error);
           return;
         }
-
         const transformedOrders: Order[] = data.map(order => ({
           id: order.id,
           orderNumber: order.order_number,
@@ -61,16 +66,13 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
           date: new Date(order.created_at),
           status: order.status as 'pending' | 'processing' | 'completed' | 'cancelled'
         }));
-
         setOrders(transformedOrders);
       } catch (error) {
         console.error('Error fetching orders:', error);
       }
     };
-
     fetchOrders();
   }, []);
-
   useEffect(() => {
     const totalOrders = orders.length;
     const totalRevenue = orders.filter(o => o.status !== 'cancelled').reduce((sum, order) => sum + order.total, 0);
@@ -80,13 +82,21 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
     const cancelledOrders = orders.filter(o => o.status === 'cancelled').length;
 
     // Calculate top products with revenue
-    const productSales: { [key: string]: { quantity: number; revenue: number } } = {};
+    const productSales: {
+      [key: string]: {
+        quantity: number;
+        revenue: number;
+      };
+    } = {};
     orders.filter(o => o.status !== 'cancelled').forEach(order => {
       if (order.items && Array.isArray(order.items)) {
         order.items.forEach(item => {
           if (item.product && item.product.id) {
             if (!productSales[item.product.id]) {
-              productSales[item.product.id] = { quantity: 0, revenue: 0 };
+              productSales[item.product.id] = {
+                quantity: 0,
+                revenue: 0
+              };
             }
             productSales[item.product.id].quantity += item.quantity;
             productSales[item.product.id].revenue += item.quantity * item.product.price;
@@ -94,49 +104,42 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
         });
       }
     });
-
-    const topProducts = Object.entries(productSales)
-      .map(([productId, data]) => {
-        const product = products.find(p => p.id === productId);
-        return product ? { 
-          product, 
-          sales: data.quantity, 
-          revenue: data.revenue 
-        } : null;
-      })
-      .filter(item => item !== null)
-      .sort((a, b) => b!.sales - a!.sales)
-      .slice(0, 10) as { product: Product; sales: number; revenue: number }[];
-
-    setStats({ 
-      totalOrders, 
-      totalRevenue, 
-      avgOrderValue, 
+    const topProducts = Object.entries(productSales).map(([productId, data]) => {
+      const product = products.find(p => p.id === productId);
+      return product ? {
+        product,
+        sales: data.quantity,
+        revenue: data.revenue
+      } : null;
+    }).filter(item => item !== null).sort((a, b) => b!.sales - a!.sales).slice(0, 10) as {
+      product: Product;
+      sales: number;
+      revenue: number;
+    }[];
+    setStats({
+      totalOrders,
+      totalRevenue,
+      avgOrderValue,
       pendingOrders,
       completedOrders,
       cancelledOrders,
-      topProducts 
+      topProducts
     });
   }, [orders, products]);
-
   const handleStatusUpdate = async (orderId: string, newStatus: 'pending' | 'completed' | 'cancelled', note: string = '') => {
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ 
-          status: newStatus,
-          notes: note 
-        })
-        .eq('id', orderId);
-
+      const {
+        error
+      } = await supabase.from('orders').update({
+        status: newStatus,
+        notes: note
+      }).eq('id', orderId);
       if (error) throw error;
-
-      setOrders(prev => prev.map(order => 
-        order.id === orderId 
-          ? { ...order, status: newStatus, notes: note }
-          : order
-      ));
-
+      setOrders(prev => prev.map(order => order.id === orderId ? {
+        ...order,
+        status: newStatus,
+        notes: note
+      } : order));
       const statusText = newStatus === 'completed' ? 'تأكيد' : newStatus === 'cancelled' ? 'إلغاء' : 'إرجاع إلى الانتظار';
       toast(`تم ${statusText} الطلب بنجاح`);
       setIsDialogOpen(false);
@@ -148,14 +151,12 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
       toast('حدث خطأ أثناء تحديث حالة الطلب');
     }
   };
-
   const openStatusDialog = (order: Order, status: 'pending' | 'completed' | 'cancelled') => {
     setSelectedOrder(order);
     setPendingStatus(status);
     setStatusNote(order.notes || '');
     setIsDialogOpen(true);
   };
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
@@ -166,7 +167,6 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
         return <Badge className="bg-amber-100 text-amber-800 border-amber-200 text-xs px-2 py-0.5">انتظار</Badge>;
     }
   };
-
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('ar-SA', {
       day: '2-digit',
@@ -176,22 +176,14 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
       minute: '2-digit'
     }).format(date);
   };
-
   const recentOrders = orders.slice(0, 8);
   const todayOrders = orders.filter(order => {
     const today = new Date();
     const orderDate = new Date(order.date);
     return orderDate.toDateString() === today.toDateString();
   });
-
-  return (
-    <div className="space-y-6 p-4 bg-slate-50 min-h-screen">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-slate-800">لوحة التحكم</h1>
-        <div className="text-sm text-slate-600">
-          آخر تحديث: {formatDate(new Date())}
-        </div>
-      </div>
+  return <div className="space-y-6 p-4 bg-slate-50 min-h-screen">
+      
       
       {/* Compact Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -284,13 +276,10 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              {recentOrders.length === 0 ? (
-                <div className="text-center py-12 text-slate-500">
+              {recentOrders.length === 0 ? <div className="text-center py-12 text-slate-500">
                   <Package className="h-12 w-12 mx-auto mb-4 text-slate-300" />
                   <p>لا توجد طلبات بعد</p>
-                </div>
-              ) : (
-                <Table>
+                </div> : <Table>
                   <TableHeader>
                     <TableRow className="bg-slate-50">
                       <TableHead className="text-slate-700 font-semibold">رقم الطلب</TableHead>
@@ -304,8 +293,7 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {recentOrders.map((order) => (
-                      <TableRow key={order.id} className="hover:bg-slate-50">
+                    {recentOrders.map(order => <TableRow key={order.id} className="hover:bg-slate-50">
                         <TableCell className="font-mono text-sm font-medium text-blue-600">#{order.orderNumber}</TableCell>
                         <TableCell className="font-medium text-slate-800">{order.customerName}</TableCell>
                         <TableCell className="text-slate-600">{order.shopName}</TableCell>
@@ -315,60 +303,30 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
                         <TableCell className="text-sm text-slate-500">{formatDate(order.date)}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            {order.status === 'pending' && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white"
-                                  onClick={() => openStatusDialog(order, 'completed')}
-                                >
+                            {order.status === 'pending' && <>
+                                <Button size="sm" className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
                                   <Check className="h-3 w-3" />
                                 </Button>
-                                <Button
-                                  size="sm"
-                                  className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white"
-                                  onClick={() => openStatusDialog(order, 'cancelled')}
-                                >
+                                <Button size="sm" className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
                                   <X className="h-3 w-3" />
                                 </Button>
-                              </>
-                            )}
-                            {(order.status === 'completed' || order.status === 'cancelled') && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  className="h-7 w-7 p-0 bg-amber-500 hover:bg-amber-600 text-white"
-                                  onClick={() => openStatusDialog(order, 'pending')}
-                                >
+                              </>}
+                            {(order.status === 'completed' || order.status === 'cancelled') && <>
+                                <Button size="sm" className="h-7 w-7 p-0 bg-amber-500 hover:bg-amber-600 text-white" onClick={() => openStatusDialog(order, 'pending')}>
                                   <RotateCcw className="h-3 w-3" />
                                 </Button>
-                                {order.status === 'completed' && (
-                                  <Button
-                                    size="sm"
-                                    className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white"
-                                    onClick={() => openStatusDialog(order, 'cancelled')}
-                                  >
+                                {order.status === 'completed' && <Button size="sm" className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
                                     <X className="h-3 w-3" />
-                                  </Button>
-                                )}
-                                {order.status === 'cancelled' && (
-                                  <Button
-                                    size="sm"
-                                    className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white"
-                                    onClick={() => openStatusDialog(order, 'completed')}
-                                  >
+                                  </Button>}
+                                {order.status === 'cancelled' && <Button size="sm" className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
                                     <Check className="h-3 w-3" />
-                                  </Button>
-                                )}
-                              </>
-                            )}
+                                  </Button>}
+                              </>}
                           </div>
                         </TableCell>
-                      </TableRow>
-                    ))}
+                      </TableRow>)}
                   </TableBody>
-                </Table>
-              )}
+                </Table>}
             </CardContent>
           </Card>
         </TabsContent>
@@ -382,25 +340,17 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              {stats.topProducts.length === 0 ? (
-                <div className="text-center py-12 text-slate-500">
+              {stats.topProducts.length === 0 ? <div className="text-center py-12 text-slate-500">
                   <Package className="h-12 w-12 mx-auto mb-4 text-slate-300" />
                   <p>لا توجد مبيعات بعد</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {stats.topProducts.map((item, index) => (
-                    <Card key={item.product.id} className="bg-gradient-to-br from-slate-50 to-slate-100 border shadow-sm">
+                </div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {stats.topProducts.map((item, index) => <Card key={item.product.id} className="bg-gradient-to-br from-slate-50 to-slate-100 border shadow-sm">
                       <CardContent className="p-4">
                         <div className="flex items-center gap-3">
                           <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
                             {index + 1}
                           </div>
-                          <img
-                            src={item.product.image}
-                            alt={item.product.name}
-                            className="w-12 h-12 object-cover rounded-lg border-2 border-white shadow-sm"
-                          />
+                          <img src={item.product.image} alt={item.product.name} className="w-12 h-12 object-cover rounded-lg border-2 border-white shadow-sm" />
                           <div className="flex-1 min-w-0">
                             <div className="font-semibold text-sm text-slate-800 truncate">{item.product.name}</div>
                             <div className="text-xs text-slate-500">{item.product.category}</div>
@@ -417,10 +367,8 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
                           </div>
                         </div>
                       </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
+                    </Card>)}
+                </div>}
             </CardContent>
           </Card>
         </TabsContent>
@@ -434,13 +382,10 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              {orders.length === 0 ? (
-                <div className="text-center py-12 text-slate-500">
+              {orders.length === 0 ? <div className="text-center py-12 text-slate-500">
                   <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-slate-300" />
                   <p>لا توجد طلبات بعد</p>
-                </div>
-              ) : (
-                <div className="max-h-96 overflow-y-auto">
+                </div> : <div className="max-h-96 overflow-y-auto">
                   <Table>
                     <TableHeader className="sticky top-0 bg-slate-50 z-10">
                       <TableRow>
@@ -455,8 +400,7 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {orders.map((order) => (
-                        <TableRow key={order.id} className="hover:bg-slate-50">
+                      {orders.map(order => <TableRow key={order.id} className="hover:bg-slate-50">
                           <TableCell className="font-mono text-sm font-medium text-blue-600">#{order.orderNumber}</TableCell>
                           <TableCell className="font-medium text-slate-800">{order.customerName}</TableCell>
                           <TableCell className="text-slate-600">{order.shopName}</TableCell>
@@ -466,61 +410,31 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
                           <TableCell className="text-sm text-slate-500">{formatDate(order.date)}</TableCell>
                           <TableCell>
                             <div className="flex gap-1">
-                              {order.status === 'pending' && (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white"
-                                    onClick={() => openStatusDialog(order, 'completed')}
-                                  >
+                              {order.status === 'pending' && <>
+                                  <Button size="sm" className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
                                     <Check className="h-3 w-3" />
                                   </Button>
-                                  <Button
-                                    size="sm"
-                                    className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white"
-                                    onClick={() => openStatusDialog(order, 'cancelled')}
-                                  >
+                                  <Button size="sm" className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
                                     <X className="h-3 w-3" />
                                   </Button>
-                                </>
-                              )}
-                              {(order.status === 'completed' || order.status === 'cancelled') && (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    className="h-7 w-7 p-0 bg-amber-500 hover:bg-amber-600 text-white"
-                                    onClick={() => openStatusDialog(order, 'pending')}
-                                  >
+                                </>}
+                              {(order.status === 'completed' || order.status === 'cancelled') && <>
+                                  <Button size="sm" className="h-7 w-7 p-0 bg-amber-500 hover:bg-amber-600 text-white" onClick={() => openStatusDialog(order, 'pending')}>
                                     <RotateCcw className="h-3 w-3" />
                                   </Button>
-                                  {order.status === 'completed' && (
-                                    <Button
-                                      size="sm"
-                                      className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white"
-                                      onClick={() => openStatusDialog(order, 'cancelled')}
-                                    >
+                                  {order.status === 'completed' && <Button size="sm" className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
                                       <X className="h-3 w-3" />
-                                    </Button>
-                                  )}
-                                  {order.status === 'cancelled' && (
-                                    <Button
-                                      size="sm"
-                                      className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white"
-                                      onClick={() => openStatusDialog(order, 'completed')}
-                                    >
+                                    </Button>}
+                                  {order.status === 'cancelled' && <Button size="sm" className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
                                       <Check className="h-3 w-3" />
-                                    </Button>
-                                  )}
-                                </>
-                              )}
+                                    </Button>}
+                                </>}
                             </div>
                           </TableCell>
-                        </TableRow>
-                      ))}
+                        </TableRow>)}
                     </TableBody>
                   </Table>
-                </div>
-              )}
+                </div>}
             </CardContent>
           </Card>
         </TabsContent>
@@ -544,28 +458,13 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
           </DialogHeader>
           <div className="space-y-2">
             <Label htmlFor="note" className="text-sm text-slate-700">ملاحظة (اختيارية)</Label>
-            <Textarea
-              id="note"
-              placeholder="أضف ملاحظة..."
-              value={statusNote}
-              onChange={(e) => setStatusNote(e.target.value)}
-              className="resize-none h-20 text-sm border-slate-200 focus:border-blue-500"
-            />
+            <Textarea id="note" placeholder="أضف ملاحظة..." value={statusNote} onChange={e => setStatusNote(e.target.value)} className="resize-none h-20 text-sm border-slate-200 focus:border-blue-500" />
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="text-sm border-slate-200 text-slate-600 hover:bg-slate-50">
               إلغاء
             </Button>
-            <Button
-              onClick={() => selectedOrder && handleStatusUpdate(selectedOrder.id, pendingStatus!, statusNote)}
-              className={`text-sm text-white ${
-                pendingStatus === 'completed' 
-                  ? 'bg-emerald-600 hover:bg-emerald-700' 
-                  : pendingStatus === 'cancelled'
-                  ? 'bg-red-600 hover:bg-red-700'
-                  : 'bg-amber-600 hover:bg-amber-700'
-              }`}
-            >
+            <Button onClick={() => selectedOrder && handleStatusUpdate(selectedOrder.id, pendingStatus!, statusNote)} className={`text-sm text-white ${pendingStatus === 'completed' ? 'bg-emerald-600 hover:bg-emerald-700' : pendingStatus === 'cancelled' ? 'bg-red-600 hover:bg-red-700' : 'bg-amber-600 hover:bg-amber-700'}`}>
               {pendingStatus === 'completed' && 'تأكيد'}
               {pendingStatus === 'cancelled' && 'إلغاء الطلب'}
               {pendingStatus === 'pending' && 'إرجاع'}
@@ -573,8 +472,6 @@ const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 };
-
 export default AdminDashboard;
