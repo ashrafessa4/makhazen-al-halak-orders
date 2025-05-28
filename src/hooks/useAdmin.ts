@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminUser, AdminConfig } from '@/types';
@@ -24,23 +23,53 @@ export const useAdmin = () => {
 
   const login = async (email: string, password: string) => {
     setLoading(true);
+    console.log('Attempting login for email:', email);
+    
     try {
-      // Simple admin authentication - in production, use proper password hashing
+      // Query for admin user with better error handling
       const { data: adminUser, error } = await supabase
         .from('admin_users')
         .select('*')
         .eq('email', email)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single
 
-      if (error || !adminUser || adminUser.password_hash !== password) {
+      console.log('Database query result:', { adminUser, error });
+
+      if (error) {
+        console.error('Database error:', error);
         toast({
-          title: "خطأ في تسجيل الدخول",
-          description: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+          title: "خطأ في الاتصال",
+          description: "حدث خطأ أثناء الاتصال بقاعدة البيانات",
           variant: "destructive",
         });
         return false;
       }
 
+      if (!adminUser) {
+        console.log('No admin user found for email:', email);
+        toast({
+          title: "خطأ في تسجيل الدخول",
+          description: "البريد الإلكتروني غير مسجل",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      console.log('Admin user found, checking password...');
+      console.log('Stored password:', adminUser.password_hash);
+      console.log('Entered password:', password);
+
+      if (adminUser.password_hash !== password) {
+        console.log('Password mismatch');
+        toast({
+          title: "خطأ في تسجيل الدخول",
+          description: "كلمة المرور غير صحيحة",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      console.log('Login successful!');
       setAdmin(adminUser);
       setIsAuthenticated(true);
       localStorage.setItem('admin_user', JSON.stringify(adminUser));
@@ -52,10 +81,10 @@ export const useAdmin = () => {
       
       return true;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Unexpected login error:', error);
       toast({
-        title: "خطأ في الاتصال",
-        description: "حدث خطأ أثناء تسجيل الدخول",
+        title: "خطأ غير متوقع",
+        description: "حدث خطأ أثناء تسجيل الدخول، يرجى المحاولة مرة أخرى",
         variant: "destructive",
       });
       return false;
