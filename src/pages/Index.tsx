@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useCart } from '@/hooks/useCart';
 import { useProducts } from '@/hooks/useProducts';
@@ -29,6 +28,7 @@ const Index = () => {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showAdminSettings, setShowAdminSettings] = useState(false);
+  const [orders, setOrders] = useState<Order[]>([]);
   
   const cart = useCart();
   const { products } = useProducts();
@@ -65,19 +65,19 @@ const Index = () => {
         status: 'pending'
       };
 
-      // Save order to database
+      // Save order to database - cast items to Json type
       const { error } = await supabase
         .from('orders')
-        .insert([{
+        .insert({
           order_number: orderNumber,
           customer_name: formData.customerName,
           shop_name: formData.shopName,
           city: formData.city,
           notes: formData.notes,
           total: cart.total,
-          items: cart.items,
+          items: cart.items as any, // Cast to Json type
           status: 'pending'
-        }]);
+        });
 
       if (error) throw error;
 
@@ -256,7 +256,7 @@ const Index = () => {
             العودة للمتجر
           </Button>
         </div>
-        <AdminDashboard />
+        <AdminDashboard orders={orders} />
       </div>
     </div>
   );
