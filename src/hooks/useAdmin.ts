@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminUser, AdminConfig } from '@/types';
@@ -27,7 +26,7 @@ export const useAdmin = () => {
     console.log('Attempting login for email:', email);
     
     try {
-      // Query for admin user with case-insensitive email search
+      // Query for admin user with case-insensitive email search using ilike with exact pattern
       const { data: adminUser, error } = await supabase
         .from('admin_users')
         .select('*')
