@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminUser, AdminConfig } from '@/types';
@@ -26,12 +27,12 @@ export const useAdmin = () => {
     console.log('Attempting login for email:', email);
     
     try {
-      // Query for admin user with better error handling
+      // Query for admin user with case-insensitive email search
       const { data: adminUser, error } = await supabase
         .from('admin_users')
         .select('*')
-        .eq('email', email)
-        .maybeSingle(); // Use maybeSingle instead of single
+        .ilike('email', email)
+        .maybeSingle();
 
       console.log('Database query result:', { adminUser, error });
 
