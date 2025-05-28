@@ -25,7 +25,7 @@ export interface Order {
   items: CartItem[];
   total: number;
   date: Date;
-  status: 'pending' | 'processing' | 'completed';
+  status: 'pending' | 'processing' | 'completed' | 'cancelled';
 }
 
 export interface OrderFormData {
