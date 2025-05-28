@@ -57,8 +57,9 @@ const handler = async (req: Request): Promise<Response> => {
       </tr>
     `).join('');
 
+    // Use a different sender address to avoid triggering Resend's welcome email
     const emailResponse = await resend.emails.send({
-      from: "onboarding@resend.dev",
+      from: "متجر أدوات الحلاقة <orders@resend.dev>",
       to: [adminEmail],
       subject: `طلب جديد رقم ${order.orderNumber} - ${order.customerName}`,
       html: `
