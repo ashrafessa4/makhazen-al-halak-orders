@@ -315,39 +315,38 @@ export const useAdminConfig = () => {
         console.log('🔄 Update data:', updates);
         console.log('🔄 Config ID to update:', configToUpdate.id);
         
-        // Try the update with extensive debugging
-        console.log('🔄 Executing update query...');
-        result = await supabase
+        // Try a different approach - update without eq and then fetch the result
+        console.log('🔄 Executing update query with new approach...');
+        
+        // First, perform the update
+        const updateResult = await supabase
           .from('admin_config')
           .update(updates)
-          .eq('id', configToUpdate.id)
-          .select();
+          .eq('id', configToUpdate.id);
           
-        console.log('🔄 Raw update result:', result);
-        console.log('🔄 Update result data:', result.data);
-        console.log('🔄 Update result error:', result.error);
-        console.log('🔄 Update result data length:', result.data?.length);
+        console.log('🔄 Update operation result:', updateResult);
         
-        // Check if we got exactly one row back
-        if (result.data && result.data.length === 1) {
-          console.log('✅ Update successful, converting to single result');
-          result.data = result.data[0];
-        } else if (result.data && result.data.length === 0) {
-          console.error('❌ Update returned 0 rows - this means the WHERE condition didn\'t match');
-          console.log('🔍 Let\'s verify the ID exists in the database...');
-          
-          const { data: verifyData, error: verifyError } = await supabase
-            .from('admin_config')
-            .select('*')
-            .eq('id', configToUpdate.id);
-            
-          console.log('🔍 ID verification result:', { verifyData, verifyError });
-          
-          throw new Error(`Update returned 0 rows. Config ID ${configToUpdate.id} might not exist.`);
-        } else if (result.data && result.data.length > 1) {
-          console.error('❌ Update returned multiple rows:', result.data.length);
-          throw new Error(`Update returned ${result.data.length} rows, expected 1.`);
+        if (updateResult.error) {
+          console.error('❌ Update operation failed:', updateResult.error);
+          throw updateResult.error;
         }
+        
+        // Then fetch the updated record
+        console.log('🔍 Fetching updated record...');
+        const fetchResult = await supabase
+          .from('admin_config')
+          .select('*')
+          .eq('id', configToUpdate.id)
+          .single();
+          
+        console.log('📊 Fetch updated record result:', fetchResult);
+        
+        if (fetchResult.error) {
+          console.error('❌ Error fetching updated record:', fetchResult.error);
+          throw fetchResult.error;
+        }
+        
+        result = fetchResult;
       }
 
       if (result.error) {
