@@ -38,6 +38,7 @@ export interface OrderFormData {
 export interface AdminUser {
   id: string;
   email: string;
+  password_hash: string;
   created_at: string;
 }
 
