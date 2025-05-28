@@ -5,10 +5,11 @@ import ProductCard from '@/components/ProductCard';
 interface ProductGridProps {
   products: Product[];
   onAddToCart: (product: Product, quantity: number) => void;
+  onEditProduct?: (product: Product) => void;
   isAdmin?: boolean;
 }
 
-const ProductGrid = ({ products, onAddToCart, isAdmin = false }: ProductGridProps) => {
+const ProductGrid = ({ products, onAddToCart, onEditProduct, isAdmin = false }: ProductGridProps) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
       {products.map((product, index) => (
@@ -20,6 +21,7 @@ const ProductGrid = ({ products, onAddToCart, isAdmin = false }: ProductGridProp
           <ProductCard
             product={product}
             onAddToCart={onAddToCart}
+            onEditProduct={onEditProduct}
             isAdmin={isAdmin}
           />
         </div>

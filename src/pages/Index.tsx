@@ -3,7 +3,7 @@ import { useCart } from '@/hooks/useCart';
 import { useProducts } from '@/hooks/useProducts';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useAdminConfig } from '@/hooks/useAdminConfig';
-import { Order, OrderFormData } from '@/types';
+import { Order, OrderFormData, Product } from '@/types';
 import { sendWhatsAppNotification, generateOrderNumber } from '@/utils/whatsapp';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +19,7 @@ import OrderConfirmation from '@/components/OrderConfirmation';
 import AdminView from '@/components/AdminView';
 import AdminLogin from '@/components/AdminLogin';
 import AddProductModal from '@/components/AddProductModal';
+import ProductEditModal from '@/components/ProductEditModal';
 import AdminSettings from '@/components/AdminSettings';
 
 type ViewState = 'store' | 'checkout' | 'confirmation' | 'admin';
@@ -29,6 +30,8 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('الكل');
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [showAddProduct, setShowAddProduct] = useState(false);
+  const [showEditProduct, setShowEditProduct] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showAdminSettings, setShowAdminSettings] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   
@@ -41,6 +44,11 @@ const Index = () => {
   const filteredProducts = selectedCategory === 'الكل' 
     ? products 
     : products.filter(p => p.category === selectedCategory);
+
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setShowEditProduct(true);
+  };
 
   const handleCheckout = () => {
     if (cart.items.length === 0) {
@@ -190,6 +198,7 @@ const Index = () => {
           <ProductGrid
             products={filteredProducts}
             onAddToCart={cart.addToCart}
+            onEditProduct={handleEditProduct}
             isAdmin={isAdmin}
           />
         </div>
@@ -251,6 +260,15 @@ const Index = () => {
       )}
       {showAddProduct && (
         <AddProductModal onClose={() => setShowAddProduct(false)} />
+      )}
+      {showEditProduct && editingProduct && (
+        <ProductEditModal 
+          product={editingProduct} 
+          onClose={() => {
+            setShowEditProduct(false);
+            setEditingProduct(null);
+          }} 
+        />
       )}
       {showAdminSettings && (
         <AdminSettings onClose={() => setShowAdminSettings(false)} />
