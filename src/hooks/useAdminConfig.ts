@@ -7,9 +7,29 @@ export const useAdminConfig = () => {
   const [config, setConfig] = useState<AdminConfig | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const ensureAuthenticated = async () => {
+    // Check if we have an admin session
+    const adminData = localStorage.getItem('admin_user');
+    if (!adminData) {
+      throw new Error('Admin not authenticated');
+    }
+
+    // Ensure we're signed in to Supabase (anonymous is fine for admin operations)
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      const { error } = await supabase.auth.signInAnonymously();
+      if (error) {
+        console.error('Failed to establish session:', error);
+        throw new Error('Failed to establish database session');
+      }
+    }
+  };
+
   const fetchConfig = async () => {
     try {
       console.log('🔄 Fetching admin config...');
+      await ensureAuthenticated();
+      
       const { data, error } = await supabase
         .from('admin_config')
         .select('*')
@@ -32,6 +52,8 @@ export const useAdminConfig = () => {
     console.log('🔄 Updating admin config with:', updates);
     
     try {
+      await ensureAuthenticated();
+
       // Check if a config record exists
       const { data: existingConfig, error: fetchError } = await supabase
         .from('admin_config')
@@ -60,7 +82,7 @@ export const useAdminConfig = () => {
         const configToUpdate = existingConfig[0];
         console.log('🔄 Updating existing admin config...');
         
-        // First, let's try the update without select to see if it works
+        // First, perform the update
         const { error: updateError } = await supabase
           .from('admin_config')
           .update(updates)
@@ -71,7 +93,7 @@ export const useAdminConfig = () => {
           throw updateError;
         }
 
-        // Now fetch the updated record separately
+        // Then fetch the updated record
         const { data: updatedData, error: selectError } = await supabase
           .from('admin_config')
           .select('*')
