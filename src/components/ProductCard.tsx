@@ -41,7 +41,7 @@ const ProductCard = ({ product, onAddToCart, isAdmin = false }: ProductCardProps
   };
 
   return (
-    <Card className="group h-full bg-white/95 backdrop-blur-sm border-2 border-gray-100 hover:border-barber-blue/50 hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] animate-fade-in max-w-sm mx-auto">
+    <Card className="group h-full bg-white/95 backdrop-blur-sm border-2 border-gray-100 hover:border-barber-blue/50 hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] animate-fade-in max-w-sm mx-auto flex flex-col">
       <CardHeader className="p-0">
         <div className="relative overflow-hidden rounded-t-lg">
           <img
@@ -80,8 +80,8 @@ const ProductCard = ({ product, onAddToCart, isAdmin = false }: ProductCardProps
         </div>
       </CardHeader>
       
-      <CardContent className="p-3 flex flex-col h-full">
-        <div className="flex-1 space-y-2">
+      <CardContent className="p-3 flex flex-col flex-1">
+        <div className="flex-1 space-y-2 mb-3">
           <CardTitle className="text-sm font-bold text-barber-dark text-right leading-tight group-hover:text-barber-blue transition-colors duration-200">
             {product.name}
           </CardTitle>
@@ -90,14 +90,14 @@ const ProductCard = ({ product, onAddToCart, isAdmin = false }: ProductCardProps
             {product.description}
           </p>
           
-          <div className="flex items-center justify-center mb-2">
+          <div className="flex items-center justify-center">
             <span className="text-lg font-bold text-barber-green">
               ₪{product.price}
             </span>
           </div>
         </div>
         
-        {/* Add to Cart section - Always visible */}
+        {/* Add to Cart section - Always at bottom */}
         <div className="space-y-2 mt-auto">
           <div className="flex items-center justify-center gap-2 bg-gray-50 rounded-lg p-1">
             <Button
