@@ -3,7 +3,7 @@ import { Order } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Phone } from 'lucide-react';
-import { useAdminConfig } from '@/hooks/useAdmin';
+import { useAdminConfig } from '@/hooks/useAdminConfig';
 
 interface OrderConfirmationProps {
   order: Order;

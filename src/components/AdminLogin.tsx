@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAdmin } from '@/hooks/useAdmin';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 interface AdminLoginProps {
   onClose: () => void;
@@ -13,7 +13,7 @@ interface AdminLoginProps {
 const AdminLogin = ({ onClose }: AdminLoginProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, loading } = useAdmin();
+  const { login, loading } = useAdminAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

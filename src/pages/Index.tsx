@@ -1,8 +1,8 @@
-
 import { useState } from 'react';
 import { useCart } from '@/hooks/useCart';
 import { useProducts } from '@/hooks/useProducts';
-import { useAdmin, useAdminConfig } from '@/hooks/useAdmin';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useAdminConfig } from '@/hooks/useAdminConfig';
 import { Order, OrderFormData } from '@/types';
 import { sendWhatsAppNotification, generateOrderNumber } from '@/utils/whatsapp';
 import { toast } from '@/hooks/use-toast';
@@ -34,7 +34,7 @@ const Index = () => {
   
   const cart = useCart();
   const { products } = useProducts();
-  const { isAuthenticated: isAdmin, logout: adminLogout } = useAdmin();
+  const { isAuthenticated: isAdmin, logout: adminLogout } = useAdminAuth();
   const { config } = useAdminConfig();
 
   const categories = ['الكل', ...Array.from(new Set(products.map(p => p.category)))];
