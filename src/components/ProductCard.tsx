@@ -90,15 +90,15 @@ const ProductCard = ({ product, onAddToCart, isAdmin = false }: ProductCardProps
             {product.description}
           </p>
           
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center mb-2">
             <span className="text-lg font-bold text-barber-green">
               ₪{product.price}
             </span>
           </div>
         </div>
         
-        {/* Always show Add to Cart section */}
-        <div className="mt-3 space-y-2">
+        {/* Add to Cart section - Always visible */}
+        <div className="space-y-2 mt-auto">
           <div className="flex items-center justify-center gap-2 bg-gray-50 rounded-lg p-1">
             <Button
               size="sm"
