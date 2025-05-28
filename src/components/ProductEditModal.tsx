@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Product, ProductFormData } from '@/types';
 import { useProducts } from '@/hooks/useProducts';
+import ImageUpload from './ImageUpload';
 
 interface ProductEditModalProps {
   product: Product;
@@ -29,6 +30,12 @@ const ProductEditModal = ({ product, onClose }: ProductEditModalProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.image) {
+      alert('يرجى إضافة صورة للمنتج');
+      return;
+    }
+    
     await updateProduct(product.id, formData);
     onClose();
   };
@@ -88,17 +95,10 @@ const ProductEditModal = ({ product, onClose }: ProductEditModalProps) => {
               </Select>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="image">رابط الصورة</Label>
-              <Input
-                id="image"
-                type="url"
-                value={formData.image}
-                onChange={(e) => handleInputChange('image', e.target.value)}
-                className="border-2 border-gray-300 focus:border-barber-blue"
-                required
-              />
-            </div>
+            <ImageUpload
+              currentImage={formData.image}
+              onImageChange={(imageUrl) => handleInputChange('image', imageUrl)}
+            />
             
             <div className="space-y-2">
               <Label htmlFor="description">الوصف</Label>
