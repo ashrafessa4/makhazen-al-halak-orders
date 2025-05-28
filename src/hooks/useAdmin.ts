@@ -311,17 +311,9 @@ export const useAdminConfig = () => {
       console.log('✅ Admin config updated successfully:', result.data);
       setConfig(result.data);
       
-      toast({
-        title: "تم تحديث الإعدادات",
-        description: "تم حفظ التغييرات بنجاح",
-      });
+      return result.data;
     } catch (error) {
       console.error('Error updating config:', error);
-      toast({
-        title: "خطأ في التحديث",
-        description: "حدث خطأ أثناء حفظ الإعدادات",
-        variant: "destructive",
-      });
       throw error;
     } finally {
       setLoading(false);
