@@ -315,24 +315,65 @@ export const useAdminConfig = () => {
         console.log('🔄 Update data:', updates);
         console.log('🔄 Config ID to update:', configToUpdate.id);
         
-        // Try a different approach - update without eq and then fetch the result
-        console.log('🔄 Executing update query with new approach...');
+        // Debug: Let's check the exact field names and values
+        console.log('🔍 Debugging update data:');
+        console.log('🔍 Updates object keys:', Object.keys(updates));
+        console.log('🔍 Updates object values:', Object.values(updates));
+        console.log('🔍 notification_email in updates:', updates.notification_email);
+        console.log('🔍 typeof notification_email:', typeof updates.notification_email);
+        console.log('🔍 notification_email === null:', updates.notification_email === null);
+        console.log('🔍 notification_email === undefined:', updates.notification_email === undefined);
+        console.log('🔍 notification_email length:', updates.notification_email?.length);
+        
+        // Let's also check the database schema expectation
+        console.log('🔍 Current config notification_email:', configToUpdate.notification_email);
+        console.log('🔍 Current config notification_email type:', typeof configToUpdate.notification_email);
+        
+        // Try a simpler update first - just the email field
+        console.log('🔄 Testing email-only update first...');
+        const emailOnlyUpdate = { notification_email: updates.notification_email };
+        console.log('🔄 Email-only update data:', emailOnlyUpdate);
         
         // First, perform the update
         const updateResult = await supabase
           .from('admin_config')
-          .update(updates)
+          .update(emailOnlyUpdate)
           .eq('id', configToUpdate.id);
           
-        console.log('🔄 Update operation result:', updateResult);
+        console.log('🔄 Email-only update operation result:', updateResult);
+        console.log('🔄 Update status:', updateResult.status);
+        console.log('🔄 Update count:', updateResult.count);
+        console.log('🔄 Update error:', updateResult.error);
         
         if (updateResult.error) {
-          console.error('❌ Update operation failed:', updateResult.error);
+          console.error('❌ Email-only update operation failed:', updateResult.error);
           throw updateResult.error;
         }
         
-        // Then fetch the updated record
-        console.log('🔍 Fetching updated record...');
+        // Check if any rows were affected
+        if (updateResult.count === 0) {
+          console.error('❌ No rows were updated! This indicates the WHERE clause didn\'t match.');
+          throw new Error('No rows were updated. The record might not exist or the WHERE clause failed.');
+        }
+        
+        console.log('✅ Email update count:', updateResult.count);
+        
+        // Now update the WhatsApp number as well
+        console.log('🔄 Now updating WhatsApp number...');
+        const fullUpdateResult = await supabase
+          .from('admin_config')
+          .update(updates)
+          .eq('id', configToUpdate.id);
+          
+        console.log('🔄 Full update operation result:', fullUpdateResult);
+        
+        if (fullUpdateResult.error) {
+          console.error('❌ Full update operation failed:', fullUpdateResult.error);
+          throw fullUpdateResult.error;
+        }
+        
+        // Then fetch the updated record to verify
+        console.log('🔍 Fetching updated record to verify changes...');
         const fetchResult = await supabase
           .from('admin_config')
           .select('*')
@@ -340,12 +381,23 @@ export const useAdminConfig = () => {
           .single();
           
         console.log('📊 Fetch updated record result:', fetchResult);
+        console.log('📊 Updated notification_email:', fetchResult.data?.notification_email);
+        console.log('📊 Updated whatsapp_number:', fetchResult.data?.whatsapp_number);
         
         if (fetchResult.error) {
           console.error('❌ Error fetching updated record:', fetchResult.error);
           throw fetchResult.error;
         }
         
+        // Verify that the email was actually updated
+        if (fetchResult.data?.notification_email !== updates.notification_email) {
+          console.error('❌ Email update verification failed!');
+          console.error('❌ Expected:', updates.notification_email);
+          console.error('❌ Actual:', fetchResult.data?.notification_email);
+          throw new Error('Email update verification failed. The database value does not match the expected value.');
+        }
+        
+        console.log('✅ Email update verification successful!');
         result = fetchResult;
       }
 
