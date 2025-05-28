@@ -48,11 +48,13 @@ export const useAdminConfig = () => {
         // No config exists, create one
         console.log('📝 Creating new admin config...');
         
-        result = await supabase
+        const { data, error } = await supabase
           .from('admin_config')
           .insert([updates])
           .select()
           .single();
+          
+        result = { data, error };
       } else {
         // Config exists, update it
         const configToUpdate = existingConfig[0];
@@ -62,10 +64,21 @@ export const useAdminConfig = () => {
           .from('admin_config')
           .update(updates)
           .eq('id', configToUpdate.id)
-          .select()
-          .single();
-          
-        result = { data, error };
+          .select();
+
+        if (error) {
+          throw error;
+        }
+
+        // Since we're not using .single(), data will be an array
+        // We need to get the first (and should be only) item
+        const updatedRecord = data && data.length > 0 ? data[0] : null;
+        
+        if (!updatedRecord) {
+          throw new Error('No record was updated');
+        }
+        
+        result = { data: updatedRecord, error: null };
       }
 
       if (result.error) {
