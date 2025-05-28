@@ -191,6 +191,11 @@ export const useAdmin = () => {
         title: "تم تسجيل الدخول بنجاح",
         description: "مرحباً بك في لوحة التحكم",
       });
+
+      // Refresh the page to ensure UI updates properly
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
       
       return true;
     } catch (error) {
@@ -225,6 +230,11 @@ export const useAdmin = () => {
       title: "تم تسجيل الخروج",
       description: "تم تسجيل خروجك بنجاح",
     });
+
+    // Refresh the page to ensure UI updates properly
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   return {

@@ -45,14 +45,6 @@ export const useProducts = () => {
     setLoading(true);
     
     try {
-      // Check current user/session
-      const { data: session, error: sessionError } = await supabase.auth.getSession();
-      console.log('👤 Current session:', { session: session?.session?.user?.id, error: sessionError });
-      
-      // Try to get current user
-      const { data: user, error: userError } = await supabase.auth.getUser();
-      console.log('👤 Current user:', { user: user?.user?.id, error: userError });
-      
       console.log('📡 Making request to insert product...');
       const { data, error } = await supabase
         .from('products')
@@ -72,12 +64,16 @@ export const useProducts = () => {
       }
       
       console.log('✅ Product added successfully:', data);
-      await fetchProducts();
       
       toast({
         title: "تم إضافة المنتج",
         description: "تم إضافة المنتج بنجاح",
       });
+
+      // Refresh the page to ensure UI updates
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       console.error('❌ Error in addProduct:', error);
       toast({
@@ -96,10 +92,6 @@ export const useProducts = () => {
     setLoading(true);
     
     try {
-      // Check current user/session
-      const { data: session, error: sessionError } = await supabase.auth.getSession();
-      console.log('👤 Current session for update:', { session: session?.session?.user?.id, error: sessionError });
-      
       console.log('📡 Making request to update product...');
       const { data, error } = await supabase
         .from('products')
@@ -119,17 +111,17 @@ export const useProducts = () => {
         throw error;
       }
       
-      if (!data || data.length === 0) {
-        console.warn('⚠️ Update successful but no rows returned. This might indicate RLS blocking the select.');
-      }
-      
       console.log('✅ Product updated successfully:', data);
-      await fetchProducts(); // Refresh the products list
       
       toast({
         title: "تم تحديث المنتج",
         description: "تم تحديث المنتج بنجاح",
       });
+
+      // Refresh the page to ensure UI updates
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       console.error('❌ Error in updateProduct:', error);
       toast({
@@ -148,10 +140,6 @@ export const useProducts = () => {
     setLoading(true);
     
     try {
-      // Check current user/session
-      const { data: session, error: sessionError } = await supabase.auth.getSession();
-      console.log('👤 Current session for delete:', { session: session?.session?.user?.id, error: sessionError });
-      
       console.log('📡 Making request to delete product...');
       const { data, error } = await supabase
         .from('products')
@@ -172,12 +160,16 @@ export const useProducts = () => {
       }
       
       console.log('✅ Product deleted successfully:', data);
-      await fetchProducts();
       
       toast({
         title: "تم حذف المنتج",
         description: "تم حذف المنتج بنجاح",
       });
+
+      // Refresh the page to ensure UI updates
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       console.error('❌ Error in deleteProduct:', error);
       toast({
