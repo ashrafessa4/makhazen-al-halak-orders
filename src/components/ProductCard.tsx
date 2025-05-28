@@ -41,12 +41,12 @@ const ProductCard = ({ product, onAddToCart, isAdmin = false }: ProductCardProps
   };
 
   return (
-    <Card className="group bg-white/95 backdrop-blur-sm border-2 border-gray-100 hover:border-barber-blue/50 hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] animate-fade-in max-w-full mx-auto">
+    <Card className="group bg-white/95 backdrop-blur-sm border-2 border-gray-100 hover:border-barber-blue/50 hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] animate-fade-in max-w-full mx-auto overflow-hidden">
       <CardContent className="p-0">
-        <div className="flex flex-row h-32 sm:h-36">
+        <div className="flex flex-row min-h-[140px] sm:min-h-[150px]">
           {/* Image Section - Left Side */}
           <div className="relative w-32 sm:w-36 flex-shrink-0">
-            <div className="relative overflow-hidden rounded-l-lg h-full">
+            <div className="relative overflow-hidden h-full">
               <img
                 src={product.image}
                 alt={product.name}
@@ -84,8 +84,8 @@ const ProductCard = ({ product, onAddToCart, isAdmin = false }: ProductCardProps
           </div>
           
           {/* Content Section - Right Side */}
-          <div className="flex-1 p-3 flex flex-col justify-between">
-            <div className="space-y-1">
+          <div className="flex-1 p-3 flex flex-col justify-between min-h-0">
+            <div className="space-y-1 flex-shrink-0">
               <CardTitle className="text-sm font-bold text-barber-dark text-center leading-tight group-hover:text-barber-blue transition-colors duration-200 line-clamp-2">
                 {product.name}
               </CardTitle>
@@ -95,7 +95,7 @@ const ProductCard = ({ product, onAddToCart, isAdmin = false }: ProductCardProps
               </p>
             </div>
             
-            <div className="space-y-2 mt-2">
+            <div className="space-y-2 mt-auto flex-shrink-0">
               <div className="flex items-center justify-center">
                 <span className="text-lg font-bold text-barber-green">
                   ₪{product.price}
@@ -103,7 +103,7 @@ const ProductCard = ({ product, onAddToCart, isAdmin = false }: ProductCardProps
               </div>
               
               {/* Quantity and Add to Cart Controls */}
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <div className="flex items-center justify-center gap-1 bg-gray-50 rounded-lg p-1">
                   <Button
                     size="sm"
@@ -131,7 +131,7 @@ const ProductCard = ({ product, onAddToCart, isAdmin = false }: ProductCardProps
                 <Button
                   onClick={handleAddToCart}
                   disabled={isAdding}
-                  className={`w-full font-semibold py-1.5 rounded-lg transition-all duration-200 transform text-xs ${
+                  className={`w-full font-semibold py-2 rounded-lg transition-all duration-200 transform text-xs ${
                     isAdding 
                       ? 'bg-green-500 text-white scale-95' 
                       : 'bg-gradient-to-r from-barber-blue to-barber-green hover:from-barber-blue/90 hover:to-barber-green/90 text-white hover:scale-105'
