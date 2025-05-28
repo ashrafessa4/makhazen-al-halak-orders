@@ -301,237 +301,257 @@ const AdminDashboard = ({
         </Card>
       </div>
 
-      {/* 2x2 Grid Layout */}
+      {/* 2x2 Grid of Button Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Left: Pending Orders */}
-        <Card className="shadow-sm border-0 bg-white">
-          <CardHeader className="pb-4 border-b bg-slate-50">
-            <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-              <Clock className="h-5 w-5" />
+        
+        {/* Pending Orders Button */}
+        <Tabs defaultValue="pending" className="w-full">
+          <TabsList className="grid w-full grid-cols-1">
+            <TabsTrigger value="pending" className="text-lg font-semibold">
+              <Clock className="h-5 w-5 mr-2" />
               الطلبات المعلقة ({pendingOrders.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {pendingOrders.length === 0 ? (
-              <div className="text-center py-12 text-slate-500">
-                <Clock className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-                <p>لا توجد طلبات معلقة</p>
-              </div>
-            ) : (
-              <div className="max-h-96 overflow-y-auto overflow-x-auto">
-                <Table>
-                  <TableHeader className="sticky top-0 bg-slate-50 z-10">
-                    <TableRow>
-                      <TableHead className="text-slate-700 font-semibold text-xs px-1">رقم الطلب</TableHead>
-                      <TableHead className="text-slate-700 font-semibold text-xs px-1">العميل</TableHead>
-                      <TableHead className="text-slate-700 font-semibold text-xs px-1">المتجر</TableHead>
-                      <TableHead className="text-slate-700 font-semibold text-xs px-1">المدينة</TableHead>
-                      <TableHead className="text-slate-700 font-semibold text-xs px-1">المبلغ</TableHead>
-                      <TableHead className="text-slate-700 font-semibold text-xs px-1">إجراءات</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pendingOrders.map(order => (
-                      <TableRow key={order.id} className="hover:bg-slate-50" style={{ height: '40px' }}>
-                        <TableCell className="font-mono text-xs font-medium text-blue-600 px-1 cursor-pointer hover:underline" onClick={() => openOrderDetails(order)}>
-                          #{order.orderNumber}
-                        </TableCell>
-                        <TableCell className="font-medium text-xs text-slate-800 px-1">{order.customerName}</TableCell>
-                        <TableCell className="text-xs text-slate-600 px-1">{order.shopName}</TableCell>
-                        <TableCell className="text-xs text-slate-600 px-1">{order.city}</TableCell>
-                        <TableCell className="font-bold text-xs text-emerald-600 px-1">₪{order.total}</TableCell>
-                        <TableCell className="px-1">
-                          <div className="flex gap-1">
-                            <Button size="sm" className="h-6 w-6 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
-                              <Check className="h-3 w-3" />
-                            </Button>
-                            <Button size="sm" className="h-6 w-6 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Top Right: Most Sold Items */}
-        <Card className="shadow-sm border-0 bg-white">
-          <CardHeader className="pb-4 border-b bg-slate-50">
-            <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              الأكثر مبيعاً
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4">
-            {stats.topProducts.length === 0 ? (
-              <div className="text-center py-12 text-slate-500">
-                <Package className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-                <p>لا توجد مبيعات بعد</p>
-              </div>
-            ) : (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {stats.topProducts.map((item, index) => (
-                  <div key={item.product.id} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
-                    <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                      {index + 1}
-                    </div>
-                    <img src={item.product.image} alt={item.product.name} className="w-10 h-10 object-cover rounded-lg border-2 border-white shadow-sm" />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-sm text-slate-800 truncate">{item.product.name}</div>
-                      <div className="text-xs text-slate-500">{item.product.category}</div>
-                      <div className="flex gap-4 mt-1">
-                        <div className="text-xs">
-                          <span className="font-medium text-blue-600">{item.sales}</span>
-                          <span className="text-slate-500"> قطعة</span>
-                        </div>
-                        <div className="text-xs">
-                          <span className="font-medium text-emerald-600">₪{item.revenue}</span>
-                          <span className="text-slate-500"> ربح</span>
-                        </div>
-                      </div>
-                    </div>
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="pending" className="mt-4">
+            <Card className="shadow-sm border-0 bg-white">
+              <CardContent className="p-0">
+                {pendingOrders.length === 0 ? (
+                  <div className="text-center py-12 text-slate-500">
+                    <Clock className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                    <p>لا توجد طلبات معلقة</p>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Bottom Left: All Orders with Search */}
-        <Card className="shadow-sm border-0 bg-white">
-          <CardHeader className="pb-4 border-b bg-slate-50">
-            <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5" />
-              جميع الطلبات ({orders.length})
-            </CardTitle>
-            <div className="flex items-center gap-2 mt-2">
-              <Search className="h-4 w-4 text-slate-500" />
-              <Input
-                placeholder="البحث في الطلبات..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="text-sm"
-              />
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            {filteredOrders.length === 0 ? (
-              <div className="text-center py-12 text-slate-500">
-                <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-                <p>لا توجد طلبات</p>
-              </div>
-            ) : (
-              <div className="max-h-96 overflow-y-auto overflow-x-auto">
-                <Table>
-                  <TableHeader className="sticky top-0 bg-slate-50 z-10">
-                    <TableRow>
-                      <TableHead className="text-slate-700 font-semibold text-xs px-1">رقم الطلب</TableHead>
-                      <TableHead className="text-slate-700 font-semibold text-xs px-1">العميل</TableHead>
-                      <TableHead className="text-slate-700 font-semibold text-xs px-1">المتجر</TableHead>
-                      <TableHead className="text-slate-700 font-semibold text-xs px-1">المدينة</TableHead>
-                      <TableHead className="text-slate-700 font-semibold text-xs px-1">المبلغ</TableHead>
-                      <TableHead className="text-slate-700 font-semibold text-xs px-1">الحالة</TableHead>
-                      <TableHead className="text-slate-700 font-semibold text-xs px-1">إجراءات</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredOrders.map(order => (
-                      <TableRow key={order.id} className="hover:bg-slate-50" style={{ height: '40px' }}>
-                        <TableCell className="font-mono text-xs font-medium text-blue-600 px-1 cursor-pointer hover:underline" onClick={() => openOrderDetails(order)}>
-                          #{order.orderNumber}
-                        </TableCell>
-                        <TableCell className="font-medium text-xs text-slate-800 px-1">{order.customerName}</TableCell>
-                        <TableCell className="text-xs text-slate-600 px-1">{order.shopName}</TableCell>
-                        <TableCell className="text-xs text-slate-600 px-1">{order.city}</TableCell>
-                        <TableCell className="font-bold text-xs text-emerald-600 px-1">₪{order.total}</TableCell>
-                        <TableCell className="px-1">{getStatusBadge(order.status)}</TableCell>
-                        <TableCell className="px-1">
-                          <div className="flex gap-1">
-                            {order.status === 'pending' && (
-                              <>
+                ) : (
+                  <div className="max-h-96 overflow-y-auto overflow-x-auto">
+                    <Table>
+                      <TableHeader className="sticky top-0 bg-slate-50 z-10">
+                        <TableRow>
+                          <TableHead className="text-slate-700 font-semibold text-xs px-1">رقم الطلب</TableHead>
+                          <TableHead className="text-slate-700 font-semibold text-xs px-1">العميل</TableHead>
+                          <TableHead className="text-slate-700 font-semibold text-xs px-1">المتجر</TableHead>
+                          <TableHead className="text-slate-700 font-semibold text-xs px-1">المدينة</TableHead>
+                          <TableHead className="text-slate-700 font-semibold text-xs px-1">المبلغ</TableHead>
+                          <TableHead className="text-slate-700 font-semibold text-xs px-1">إجراءات</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {pendingOrders.map(order => (
+                          <TableRow key={order.id} className="hover:bg-slate-50" style={{ height: '36px' }}>
+                            <TableCell className="font-mono text-xs font-medium text-blue-600 px-1 cursor-pointer hover:underline" onClick={() => openOrderDetails(order)}>
+                              #{order.orderNumber}
+                            </TableCell>
+                            <TableCell className="font-medium text-xs text-slate-800 px-1">{order.customerName}</TableCell>
+                            <TableCell className="text-xs text-slate-600 px-1">{order.shopName}</TableCell>
+                            <TableCell className="text-xs text-slate-600 px-1">{order.city}</TableCell>
+                            <TableCell className="font-bold text-xs text-emerald-600 px-1">₪{order.total}</TableCell>
+                            <TableCell className="px-1">
+                              <div className="flex gap-1">
                                 <Button size="sm" className="h-6 w-6 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
                                   <Check className="h-3 w-3" />
                                 </Button>
                                 <Button size="sm" className="h-6 w-6 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
                                   <X className="h-3 w-3" />
                                 </Button>
-                              </>
-                            )}
-                            {(order.status === 'completed' || order.status === 'cancelled') && (
-                              <>
-                                <Button size="sm" className="h-6 w-6 p-0 bg-amber-500 hover:bg-amber-600 text-white" onClick={() => openStatusDialog(order, 'pending')}>
-                                  <RotateCcw className="h-3 w-3" />
-                                </Button>
-                                {order.status === 'completed' && (
-                                  <Button size="sm" className="h-6 w-6 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
-                                    <X className="h-3 w-3" />
-                                  </Button>
-                                )}
-                                {order.status === 'cancelled' && (
-                                  <Button size="sm" className="h-6 w-6 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
-                                    <Check className="h-3 w-3" />
-                                  </Button>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
-        {/* Bottom Right: Least Sold Items */}
-        <Card className="shadow-sm border-0 bg-white">
-          <CardHeader className="pb-4 border-b bg-slate-50">
-            <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              الأقل مبيعاً
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4">
-            {stats.leastProducts.length === 0 ? (
-              <div className="text-center py-12 text-slate-500">
-                <Package className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-                <p>لا توجد مبيعات بعد</p>
-              </div>
-            ) : (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {stats.leastProducts.map((item, index) => (
-                  <div key={item.product.id} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
-                    <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                      {index + 1}
-                    </div>
-                    <img src={item.product.image} alt={item.product.name} className="w-10 h-10 object-cover rounded-lg border-2 border-white shadow-sm" />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-sm text-slate-800 truncate">{item.product.name}</div>
-                      <div className="text-xs text-slate-500">{item.product.category}</div>
-                      <div className="flex gap-4 mt-1">
-                        <div className="text-xs">
-                          <span className="font-medium text-blue-600">{item.sales}</span>
-                          <span className="text-slate-500"> قطعة</span>
+        {/* Most Sold Items Button */}
+        <Tabs defaultValue="top" className="w-full">
+          <TabsList className="grid w-full grid-cols-1">
+            <TabsTrigger value="top" className="text-lg font-semibold">
+              <TrendingUp className="h-5 w-5 mr-2" />
+              الأكثر مبيعاً
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="top" className="mt-4">
+            <Card className="shadow-sm border-0 bg-white">
+              <CardContent className="p-4">
+                {stats.topProducts.length === 0 ? (
+                  <div className="text-center py-12 text-slate-500">
+                    <Package className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                    <p>لا توجد مبيعات بعد</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {stats.topProducts.map((item, index) => (
+                      <div key={item.product.id} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
+                        <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                          {index + 1}
                         </div>
-                        <div className="text-xs">
-                          <span className="font-medium text-emerald-600">₪{item.revenue}</span>
-                          <span className="text-slate-500"> ربح</span>
+                        <img src={item.product.image} alt={item.product.name} className="w-10 h-10 object-cover rounded-lg border-2 border-white shadow-sm" />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm text-slate-800 truncate">{item.product.name}</div>
+                          <div className="text-xs text-slate-500">{item.product.category}</div>
+                          <div className="flex gap-4 mt-1">
+                            <div className="text-xs">
+                              <span className="font-medium text-blue-600">{item.sales}</span>
+                              <span className="text-slate-500"> قطعة</span>
+                            </div>
+                            <div className="text-xs">
+                              <span className="font-medium text-emerald-600">₪{item.revenue}</span>
+                              <span className="text-slate-500"> ربح</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* All Orders Button */}
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="grid w-full grid-cols-1">
+            <TabsTrigger value="all" className="text-lg font-semibold">
+              <ShoppingCart className="h-5 w-5 mr-2" />
+              جميع الطلبات ({orders.length})
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="all" className="mt-4">
+            <Card className="shadow-sm border-0 bg-white">
+              <CardHeader className="pb-4 border-b bg-slate-50">
+                <div className="flex items-center gap-2">
+                  <Search className="h-4 w-4 text-slate-500" />
+                  <Input
+                    placeholder="البحث في الطلبات..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="text-sm"
+                  />
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                {filteredOrders.length === 0 ? (
+                  <div className="text-center py-12 text-slate-500">
+                    <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                    <p>لا توجد طلبات</p>
+                  </div>
+                ) : (
+                  <div className="max-h-96 overflow-y-auto overflow-x-auto">
+                    <Table>
+                      <TableHeader className="sticky top-0 bg-slate-50 z-10">
+                        <TableRow>
+                          <TableHead className="text-slate-700 font-semibold text-xs px-1">رقم الطلب</TableHead>
+                          <TableHead className="text-slate-700 font-semibold text-xs px-1">العميل</TableHead>
+                          <TableHead className="text-slate-700 font-semibold text-xs px-1">المتجر</TableHead>
+                          <TableHead className="text-slate-700 font-semibold text-xs px-1">المدينة</TableHead>
+                          <TableHead className="text-slate-700 font-semibold text-xs px-1">المبلغ</TableHead>
+                          <TableHead className="text-slate-700 font-semibold text-xs px-1">الحالة</TableHead>
+                          <TableHead className="text-slate-700 font-semibold text-xs px-1">إجراءات</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredOrders.map(order => (
+                          <TableRow key={order.id} className="hover:bg-slate-50" style={{ height: '36px' }}>
+                            <TableCell className="font-mono text-xs font-medium text-blue-600 px-1 cursor-pointer hover:underline" onClick={() => openOrderDetails(order)}>
+                              #{order.orderNumber}
+                            </TableCell>
+                            <TableCell className="font-medium text-xs text-slate-800 px-1">{order.customerName}</TableCell>
+                            <TableCell className="text-xs text-slate-600 px-1">{order.shopName}</TableCell>
+                            <TableCell className="text-xs text-slate-600 px-1">{order.city}</TableCell>
+                            <TableCell className="font-bold text-xs text-emerald-600 px-1">₪{order.total}</TableCell>
+                            <TableCell className="px-1">{getStatusBadge(order.status)}</TableCell>
+                            <TableCell className="px-1">
+                              <div className="flex gap-1">
+                                {order.status === 'pending' && (
+                                  <>
+                                    <Button size="sm" className="h-6 w-6 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
+                                      <Check className="h-3 w-3" />
+                                    </Button>
+                                    <Button size="sm" className="h-6 w-6 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </>
+                                )}
+                                {(order.status === 'completed' || order.status === 'cancelled') && (
+                                  <>
+                                    <Button size="sm" className="h-6 w-6 p-0 bg-amber-500 hover:bg-amber-600 text-white" onClick={() => openStatusDialog(order, 'pending')}>
+                                      <RotateCcw className="h-3 w-3" />
+                                    </Button>
+                                    {order.status === 'completed' && (
+                                      <Button size="sm" className="h-6 w-6 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
+                                        <X className="h-3 w-3" />
+                                      </Button>
+                                    )}
+                                    {order.status === 'cancelled' && (
+                                      <Button size="sm" className="h-6 w-6 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
+                                        <Check className="h-3 w-3" />
+                                      </Button>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* Least Sold Items Button */}
+        <Tabs defaultValue="least" className="w-full">
+          <TabsList className="grid w-full grid-cols-1">
+            <TabsTrigger value="least" className="text-lg font-semibold">
+              <Package className="h-5 w-5 mr-2" />
+              الأقل مبيعاً
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="least" className="mt-4">
+            <Card className="shadow-sm border-0 bg-white">
+              <CardContent className="p-4">
+                {stats.leastProducts.length === 0 ? (
+                  <div className="text-center py-12 text-slate-500">
+                    <Package className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                    <p>لا توجد مبيعات بعد</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {stats.leastProducts.map((item, index) => (
+                      <div key={item.product.id} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
+                        <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                          {index + 1}
+                        </div>
+                        <img src={item.product.image} alt={item.product.name} className="w-10 h-10 object-cover rounded-lg border-2 border-white shadow-sm" />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm text-slate-800 truncate">{item.product.name}</div>
+                          <div className="text-xs text-slate-500">{item.product.category}</div>
+                          <div className="flex gap-4 mt-1">
+                            <div className="text-xs">
+                              <span className="font-medium text-blue-600">{item.sales}</span>
+                              <span className="text-slate-500"> قطعة</span>
+                            </div>
+                            <div className="text-xs">
+                              <span className="font-medium text-emerald-600">₪{item.revenue}</span>
+                              <span className="text-slate-500"> ربح</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
       </div>
 
       {/* Analytics Button - Disabled */}
