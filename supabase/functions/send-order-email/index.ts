@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
-const resend = new Resend("re_GCDYUSn4_ETZZHbje1W7PNihYrkjnGU8y");
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -58,7 +58,7 @@ const handler = async (req: Request): Promise<Response> => {
     `).join('');
 
     const emailResponse = await resend.emails.send({
-      from: "Makhazen Al-Halak <orders@resend.dev>",
+      from: "onboarding@resend.dev",
       to: [adminEmail],
       subject: `طلب جديد رقم ${order.orderNumber} - ${order.customerName}`,
       html: `
