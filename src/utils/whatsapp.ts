@@ -1,7 +1,7 @@
 
 import { Order } from '@/types';
 
-export const sendWhatsAppNotification = (order: Order) => {
+export const sendWhatsAppNotification = (order: Order, phoneNumber?: string) => {
   const message = `
 🆕 طلب جديد - ${order.orderNumber}
 
@@ -20,15 +20,16 @@ ${order.notes ? `📝 ملاحظات: ${order.notes}` : ''}
 📅 تاريخ الطلب: ${order.date.toLocaleString('ar-EG')}
   `.trim();
 
-  // Replace with your actual WhatsApp number
-  const phoneNumber = "+972123456789";
-  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+  // Use provided phone number or default
+  const whatsappNumber = phoneNumber || "+972509617061";
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
   
   // Open WhatsApp in a new tab
   window.open(whatsappUrl, '_blank');
   
   console.log('WhatsApp notification sent for order:', order.orderNumber);
   console.log('Message:', message);
+  console.log('Phone number:', whatsappNumber);
 };
 
 export const generateOrderNumber = (): string => {
