@@ -21,21 +21,41 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   const { deleteProduct, loading } = useProducts();
 
   const handleAddToCart = () => {
+    console.log('🛒 Adding to cart:', { product: product.name, quantity });
     onAddToCart(product, quantity);
     setQuantity(1);
   };
 
   const handleQuantityChange = (change: number) => {
     const newQuantity = quantity + change;
+    console.log('🔢 Quantity change:', { current: quantity, change, new: newQuantity });
     if (newQuantity >= 1 && newQuantity <= 99) {
       setQuantity(newQuantity);
     }
   };
 
   const handleDelete = async () => {
+    console.log('🗑️ Delete button clicked for product:', {
+      id: product.id,
+      name: product.name,
+      isAdmin,
+      loading
+    });
+    
     if (window.confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+      console.log('✅ User confirmed deletion, calling deleteProduct...');
       await deleteProduct(product.id);
+    } else {
+      console.log('❌ User cancelled deletion');
     }
+  };
+
+  const handleEdit = () => {
+    console.log('✏️ Edit button clicked for product:', {
+      id: product.id,
+      name: product.name
+    });
+    setShowEditModal(true);
   };
 
   return (
@@ -55,7 +75,7 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
               <Button
                 size="sm"
                 variant="secondary"
-                onClick={() => setShowEditModal(true)}
+                onClick={handleEdit}
                 className="h-8 w-8 p-0 bg-barber-gold hover:bg-barber-gold/90"
               >
                 <Edit className="h-4 w-4" />
@@ -126,7 +146,10 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
       {showEditModal && (
         <ProductEditModal
           product={product}
-          onClose={() => setShowEditModal(false)}
+          onClose={() => {
+            console.log('❌ Closing edit modal for product:', product.name);
+            setShowEditModal(false);
+          }}
         />
       )}
     </>
