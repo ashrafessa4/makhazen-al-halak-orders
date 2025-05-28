@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useProducts } from '@/hooks/useProducts';
 import { toast } from 'sonner';
-import { Check, X, Clock, RotateCcw, ShoppingCart, DollarSign, TrendingUp, Package, BarChart3, Search, Eye } from 'lucide-react';
+import { Check, X, Clock, RotateCcw, ShoppingCart, DollarSign, TrendingUp, Package, BarChart3, Search, Eye, MapPin, User, Store, Calendar, CreditCard } from 'lucide-react';
 
 interface AdminDashboardProps {
   orders: Order[];
@@ -208,12 +208,13 @@ const AdminDashboard = ({
   };
 
   const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('ar-SA', {
-      day: '2-digit',
+    return new Intl.DateTimeFormat('en-US', {
       month: '2-digit',
+      day: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      hour12: true
     }).format(date);
   };
 
@@ -226,7 +227,7 @@ const AdminDashboard = ({
   );
 
   return <div className="space-y-6 p-4 bg-slate-50 min-h-screen">
-      {/* Compact Stats Grid - Rearranged */}
+      {/* Compact Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg">
           <CardContent className="p-3">
@@ -301,258 +302,273 @@ const AdminDashboard = ({
         </Card>
       </div>
 
-      {/* 2x2 Grid of Button Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Pending Orders Button */}
-        <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="grid w-full grid-cols-1">
-            <TabsTrigger value="pending" className="text-lg font-semibold">
-              <Clock className="h-5 w-5 mr-2" />
-              الطلبات المعلقة ({pendingOrders.length})
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="pending" className="mt-4">
-            <Card className="shadow-sm border-0 bg-white">
-              <CardContent className="p-0">
-                {pendingOrders.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500">
-                    <Clock className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-                    <p>لا توجد طلبات معلقة</p>
-                  </div>
-                ) : (
-                  <div className="max-h-96 overflow-y-auto overflow-x-auto">
-                    <Table>
-                      <TableHeader className="sticky top-0 bg-slate-50 z-10">
-                        <TableRow>
-                          <TableHead className="text-slate-700 font-semibold text-xs px-1">رقم الطلب</TableHead>
-                          <TableHead className="text-slate-700 font-semibold text-xs px-1">العميل</TableHead>
-                          <TableHead className="text-slate-700 font-semibold text-xs px-1">المتجر</TableHead>
-                          <TableHead className="text-slate-700 font-semibold text-xs px-1">المدينة</TableHead>
-                          <TableHead className="text-slate-700 font-semibold text-xs px-1">المبلغ</TableHead>
-                          <TableHead className="text-slate-700 font-semibold text-xs px-1">إجراءات</TableHead>
+      {/* Main Dashboard with 4 Tabs */}
+      <Tabs defaultValue="pending" className="w-full">
+        <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm border">
+          <TabsTrigger value="pending" className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            <span className="hidden sm:inline">الطلبات المعلقة</span>
+            <span className="sm:hidden">معلقة</span>
+            <Badge variant="secondary" className="text-xs">{pendingOrders.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="all" className="flex items-center gap-2">
+            <ShoppingCart className="h-4 w-4" />
+            <span className="hidden sm:inline">جميع الطلبات</span>
+            <span className="sm:hidden">الكل</span>
+            <Badge variant="secondary" className="text-xs">{orders.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="top" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            <span className="hidden sm:inline">الأكثر مبيعاً</span>
+            <span className="sm:hidden">الأكثر</span>
+          </TabsTrigger>
+          <TabsTrigger value="least" className="flex items-center gap-2">
+            <Package className="h-4 w-4" />
+            <span className="hidden sm:inline">الأقل مبيعاً</span>
+            <span className="sm:hidden">الأقل</span>
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Pending Orders Tab */}
+        <TabsContent value="pending" className="mt-6">
+          <Card className="shadow-sm border-0 bg-white">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-slate-800 flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                الطلبات المعلقة ({pendingOrders.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {pendingOrders.length === 0 ? (
+                <div className="text-center py-12 text-slate-500">
+                  <Clock className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                  <p>لا توجد طلبات معلقة</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">رقم الطلب</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">العميل</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">المتجر</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">المدينة</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">المبلغ</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">إجراءات</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingOrders.map(order => (
+                        <TableRow key={order.id} className="hover:bg-slate-50 h-10">
+                          <TableCell className="font-mono text-xs font-medium text-blue-600 px-2 cursor-pointer hover:underline py-2" onClick={() => openOrderDetails(order)}>
+                            #{order.orderNumber}
+                          </TableCell>
+                          <TableCell className="font-medium text-xs text-slate-800 px-2 py-2">{order.customerName}</TableCell>
+                          <TableCell className="text-xs text-slate-600 px-2 py-2">{order.shopName}</TableCell>
+                          <TableCell className="text-xs text-slate-600 px-2 py-2">{order.city}</TableCell>
+                          <TableCell className="font-bold text-xs text-emerald-600 px-2 py-2">₪{order.total}</TableCell>
+                          <TableCell className="px-2 py-2">
+                            <div className="flex gap-1">
+                              <Button size="sm" className="h-6 w-6 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
+                                <Check className="h-3 w-3" />
+                              </Button>
+                              <Button size="sm" className="h-6 w-6 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {pendingOrders.map(order => (
-                          <TableRow key={order.id} className="hover:bg-slate-50" style={{ height: '36px' }}>
-                            <TableCell className="font-mono text-xs font-medium text-blue-600 px-1 cursor-pointer hover:underline" onClick={() => openOrderDetails(order)}>
-                              #{order.orderNumber}
-                            </TableCell>
-                            <TableCell className="font-medium text-xs text-slate-800 px-1">{order.customerName}</TableCell>
-                            <TableCell className="text-xs text-slate-600 px-1">{order.shopName}</TableCell>
-                            <TableCell className="text-xs text-slate-600 px-1">{order.city}</TableCell>
-                            <TableCell className="font-bold text-xs text-emerald-600 px-1">₪{order.total}</TableCell>
-                            <TableCell className="px-1">
-                              <div className="flex gap-1">
-                                <Button size="sm" className="h-6 w-6 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
-                                  <Check className="h-3 w-3" />
-                                </Button>
-                                <Button size="sm" className="h-6 w-6 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
-                                  <X className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        {/* Most Sold Items Button */}
-        <Tabs defaultValue="top" className="w-full">
-          <TabsList className="grid w-full grid-cols-1">
-            <TabsTrigger value="top" className="text-lg font-semibold">
-              <TrendingUp className="h-5 w-5 mr-2" />
-              الأكثر مبيعاً
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="top" className="mt-4">
-            <Card className="shadow-sm border-0 bg-white">
-              <CardContent className="p-4">
-                {stats.topProducts.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500">
-                    <Package className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-                    <p>لا توجد مبيعات بعد</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {stats.topProducts.map((item, index) => (
-                      <div key={item.product.id} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
-                        <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                          {index + 1}
-                        </div>
-                        <img src={item.product.image} alt={item.product.name} className="w-10 h-10 object-cover rounded-lg border-2 border-white shadow-sm" />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-sm text-slate-800 truncate">{item.product.name}</div>
-                          <div className="text-xs text-slate-500">{item.product.category}</div>
-                          <div className="flex gap-4 mt-1">
-                            <div className="text-xs">
-                              <span className="font-medium text-blue-600">{item.sales}</span>
-                              <span className="text-slate-500"> قطعة</span>
-                            </div>
-                            <div className="text-xs">
-                              <span className="font-medium text-emerald-600">₪{item.revenue}</span>
-                              <span className="text-slate-500"> ربح</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        {/* All Orders Button */}
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full grid-cols-1">
-            <TabsTrigger value="all" className="text-lg font-semibold">
-              <ShoppingCart className="h-5 w-5 mr-2" />
-              جميع الطلبات ({orders.length})
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="all" className="mt-4">
-            <Card className="shadow-sm border-0 bg-white">
-              <CardHeader className="pb-4 border-b bg-slate-50">
+        {/* All Orders Tab */}
+        <TabsContent value="all" className="mt-6">
+          <Card className="shadow-sm border-0 bg-white">
+            <CardHeader className="pb-4 border-b bg-slate-50">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-slate-800 flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5" />
+                  جميع الطلبات ({orders.length})
+                </CardTitle>
                 <div className="flex items-center gap-2">
                   <Search className="h-4 w-4 text-slate-500" />
                   <Input
                     placeholder="البحث في الطلبات..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="text-sm"
+                    className="text-sm w-64"
                   />
                 </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                {filteredOrders.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500">
-                    <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-                    <p>لا توجد طلبات</p>
-                  </div>
-                ) : (
-                  <div className="max-h-96 overflow-y-auto overflow-x-auto">
-                    <Table>
-                      <TableHeader className="sticky top-0 bg-slate-50 z-10">
-                        <TableRow>
-                          <TableHead className="text-slate-700 font-semibold text-xs px-1">رقم الطلب</TableHead>
-                          <TableHead className="text-slate-700 font-semibold text-xs px-1">العميل</TableHead>
-                          <TableHead className="text-slate-700 font-semibold text-xs px-1">المتجر</TableHead>
-                          <TableHead className="text-slate-700 font-semibold text-xs px-1">المدينة</TableHead>
-                          <TableHead className="text-slate-700 font-semibold text-xs px-1">المبلغ</TableHead>
-                          <TableHead className="text-slate-700 font-semibold text-xs px-1">الحالة</TableHead>
-                          <TableHead className="text-slate-700 font-semibold text-xs px-1">إجراءات</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredOrders.map(order => (
-                          <TableRow key={order.id} className="hover:bg-slate-50" style={{ height: '36px' }}>
-                            <TableCell className="font-mono text-xs font-medium text-blue-600 px-1 cursor-pointer hover:underline" onClick={() => openOrderDetails(order)}>
-                              #{order.orderNumber}
-                            </TableCell>
-                            <TableCell className="font-medium text-xs text-slate-800 px-1">{order.customerName}</TableCell>
-                            <TableCell className="text-xs text-slate-600 px-1">{order.shopName}</TableCell>
-                            <TableCell className="text-xs text-slate-600 px-1">{order.city}</TableCell>
-                            <TableCell className="font-bold text-xs text-emerald-600 px-1">₪{order.total}</TableCell>
-                            <TableCell className="px-1">{getStatusBadge(order.status)}</TableCell>
-                            <TableCell className="px-1">
-                              <div className="flex gap-1">
-                                {order.status === 'pending' && (
-                                  <>
-                                    <Button size="sm" className="h-6 w-6 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
-                                      <Check className="h-3 w-3" />
-                                    </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              {filteredOrders.length === 0 ? (
+                <div className="text-center py-12 text-slate-500">
+                  <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                  <p>لا توجد طلبات</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-slate-50 z-10">
+                      <TableRow>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">رقم الطلب</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">العميل</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">المتجر</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">المدينة</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">المبلغ</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">الحالة</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">إجراءات</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredOrders.map(order => (
+                        <TableRow key={order.id} className="hover:bg-slate-50 h-10">
+                          <TableCell className="font-mono text-xs font-medium text-blue-600 px-2 cursor-pointer hover:underline py-2" onClick={() => openOrderDetails(order)}>
+                            #{order.orderNumber}
+                          </TableCell>
+                          <TableCell className="font-medium text-xs text-slate-800 px-2 py-2">{order.customerName}</TableCell>
+                          <TableCell className="text-xs text-slate-600 px-2 py-2">{order.shopName}</TableCell>
+                          <TableCell className="text-xs text-slate-600 px-2 py-2">{order.city}</TableCell>
+                          <TableCell className="font-bold text-xs text-emerald-600 px-2 py-2">₪{order.total}</TableCell>
+                          <TableCell className="px-2 py-2">{getStatusBadge(order.status)}</TableCell>
+                          <TableCell className="px-2 py-2">
+                            <div className="flex gap-1">
+                              {order.status === 'pending' && (
+                                <>
+                                  <Button size="sm" className="h-6 w-6 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
+                                    <Check className="h-3 w-3" />
+                                  </Button>
+                                  <Button size="sm" className="h-6 w-6 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </>
+                              )}
+                              {(order.status === 'completed' || order.status === 'cancelled') && (
+                                <>
+                                  <Button size="sm" className="h-6 w-6 p-0 bg-amber-500 hover:bg-amber-600 text-white" onClick={() => openStatusDialog(order, 'pending')}>
+                                    <RotateCcw className="h-3 w-3" />
+                                  </Button>
+                                  {order.status === 'completed' && (
                                     <Button size="sm" className="h-6 w-6 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
                                       <X className="h-3 w-3" />
                                     </Button>
-                                  </>
-                                )}
-                                {(order.status === 'completed' || order.status === 'cancelled') && (
-                                  <>
-                                    <Button size="sm" className="h-6 w-6 p-0 bg-amber-500 hover:bg-amber-600 text-white" onClick={() => openStatusDialog(order, 'pending')}>
-                                      <RotateCcw className="h-3 w-3" />
+                                  )}
+                                  {order.status === 'cancelled' && (
+                                    <Button size="sm" className="h-6 w-6 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
+                                      <Check className="h-3 w-3" />
                                     </Button>
-                                    {order.status === 'completed' && (
-                                      <Button size="sm" className="h-6 w-6 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
-                                        <X className="h-3 w-3" />
-                                      </Button>
-                                    )}
-                                    {order.status === 'cancelled' && (
-                                      <Button size="sm" className="h-6 w-6 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
-                                        <Check className="h-3 w-3" />
-                                      </Button>
-                                    )}
-                                  </>
-                                )}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        {/* Least Sold Items Button */}
-        <Tabs defaultValue="least" className="w-full">
-          <TabsList className="grid w-full grid-cols-1">
-            <TabsTrigger value="least" className="text-lg font-semibold">
-              <Package className="h-5 w-5 mr-2" />
-              الأقل مبيعاً
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="least" className="mt-4">
-            <Card className="shadow-sm border-0 bg-white">
-              <CardContent className="p-4">
-                {stats.leastProducts.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500">
-                    <Package className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-                    <p>لا توجد مبيعات بعد</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {stats.leastProducts.map((item, index) => (
-                      <div key={item.product.id} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
-                        <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                          {index + 1}
-                        </div>
-                        <img src={item.product.image} alt={item.product.name} className="w-10 h-10 object-cover rounded-lg border-2 border-white shadow-sm" />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-sm text-slate-800 truncate">{item.product.name}</div>
-                          <div className="text-xs text-slate-500">{item.product.category}</div>
-                          <div className="flex gap-4 mt-1">
-                            <div className="text-xs">
-                              <span className="font-medium text-blue-600">{item.sales}</span>
-                              <span className="text-slate-500"> قطعة</span>
-                            </div>
-                            <div className="text-xs">
-                              <span className="font-medium text-emerald-600">₪{item.revenue}</span>
-                              <span className="text-slate-500"> ربح</span>
-                            </div>
+        {/* Most Sold Tab */}
+        <TabsContent value="top" className="mt-6">
+          <Card className="shadow-sm border-0 bg-white">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-slate-800 flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                الأكثر مبيعاً
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              {stats.topProducts.length === 0 ? (
+                <div className="text-center py-12 text-slate-500">
+                  <Package className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                  <p>لا توجد مبيعات بعد</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {stats.topProducts.map((item, index) => (
+                    <div key={item.product.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                      <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                        {index + 1}
+                      </div>
+                      <img src={item.product.image} alt={item.product.name} className="w-12 h-12 object-cover rounded-lg border-2 border-white shadow-sm" />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-sm text-slate-800 truncate">{item.product.name}</div>
+                        <div className="text-xs text-slate-500">{item.product.category}</div>
+                        <div className="flex gap-4 mt-1">
+                          <div className="text-xs">
+                            <span className="font-medium text-blue-600">{item.sales}</span>
+                            <span className="text-slate-500"> قطعة</span>
+                          </div>
+                          <div className="text-xs">
+                            <span className="font-medium text-emerald-600">₪{item.revenue}</span>
+                            <span className="text-slate-500"> ربح</span>
                           </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      </div>
+        {/* Least Sold Tab */}
+        <TabsContent value="least" className="mt-6">
+          <Card className="shadow-sm border-0 bg-white">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-slate-800 flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                الأقل مبيعاً
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              {stats.leastProducts.length === 0 ? (
+                <div className="text-center py-12 text-slate-500">
+                  <Package className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                  <p>لا توجد مبيعات بعد</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {stats.leastProducts.map((item, index) => (
+                    <div key={item.product.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                      <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                        {index + 1}
+                      </div>
+                      <img src={item.product.image} alt={item.product.name} className="w-12 h-12 object-cover rounded-lg border-2 border-white shadow-sm" />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-sm text-slate-800 truncate">{item.product.name}</div>
+                        <div className="text-xs text-slate-500">{item.product.category}</div>
+                        <div className="flex gap-4 mt-1">
+                          <div className="text-xs">
+                            <span className="font-medium text-blue-600">{item.sales}</span>
+                            <span className="text-slate-500"> قطعة</span>
+                          </div>
+                          <div className="text-xs">
+                            <span className="font-medium text-emerald-600">₪{item.revenue}</span>
+                            <span className="text-slate-500"> ربح</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Analytics Button - Disabled */}
       <div className="flex justify-center pt-8 pb-4">
@@ -600,71 +616,141 @@ const AdminDashboard = ({
         </DialogContent>
       </Dialog>
 
-      {/* Order Details Dialog */}
+      {/* Modern Order Details Dialog */}
       <Dialog open={isOrderDetailsOpen} onOpenChange={setIsOrderDetailsOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-slate-800 flex items-center gap-2">
-              <Eye className="h-5 w-5" />
-              تفاصيل الطلب #{orderDetailsData?.orderNumber}
-            </DialogTitle>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-slate-50 to-white">
+          <DialogHeader className="space-y-4 pb-6 border-b border-slate-200">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Eye className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-bold text-slate-800">
+                  Order #{orderDetailsData?.orderNumber}
+                </DialogTitle>
+                <p className="text-slate-500 text-sm mt-1">Complete order information and details</p>
+              </div>
+            </div>
           </DialogHeader>
+          
           {orderDetailsData && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium text-slate-700">اسم العميل</Label>
-                  <p className="text-sm text-slate-900">{orderDetailsData.customerName}</p>
+            <div className="space-y-6 py-6">
+              {/* Status and Date Row */}
+              <div className="flex items-center justify-between bg-slate-50 p-4 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-5 w-5 text-slate-500" />
+                  <div>
+                    <p className="text-sm font-medium text-slate-700">Order Date</p>
+                    <p className="text-lg font-semibold text-slate-900">{formatDate(orderDetailsData.date)}</p>
+                  </div>
                 </div>
-                <div>
-                  <Label className="text-sm font-medium text-slate-700">اسم المتجر</Label>
-                  <p className="text-sm text-slate-900">{orderDetailsData.shopName}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-slate-700">المدينة</Label>
-                  <p className="text-sm text-slate-900">{orderDetailsData.city}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-slate-700">الحالة</Label>
-                  <div className="mt-1">{getStatusBadge(orderDetailsData.status)}</div>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-slate-700">تاريخ الطلب</Label>
-                  <p className="text-sm text-slate-900">{formatDate(orderDetailsData.date)}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-slate-700">إجمالي المبلغ</Label>
-                  <p className="text-sm font-bold text-emerald-600">₪{orderDetailsData.total}</p>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-slate-700">Status</p>
+                    <div className="mt-1">{getStatusBadge(orderDetailsData.status)}</div>
+                  </div>
                 </div>
               </div>
-              
+
+              {/* Customer Information */}
+              <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <User className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-lg font-semibold text-slate-800">Customer Information</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <Label className="text-sm font-medium text-slate-600">Customer Name</Label>
+                    <p className="text-base font-semibold text-slate-900 bg-slate-50 p-3 rounded-lg">{orderDetailsData.customerName}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-sm font-medium text-slate-600 flex items-center gap-1">
+                      <Store className="h-4 w-4" />
+                      Shop Name
+                    </Label>
+                    <p className="text-base font-semibold text-slate-900 bg-slate-50 p-3 rounded-lg">{orderDetailsData.shopName}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-sm font-medium text-slate-600 flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      City
+                    </Label>
+                    <p className="text-base font-semibold text-slate-900 bg-slate-50 p-3 rounded-lg">{orderDetailsData.city}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Customer Notes */}
               {orderDetailsData.notes && (
-                <div>
-                  <Label className="text-sm font-medium text-slate-700">ملاحظات العميل</Label>
-                  <p className="text-sm text-slate-900 bg-slate-50 p-2 rounded">{orderDetailsData.notes}</p>
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-1 bg-amber-100 rounded">
+                      <Eye className="h-4 w-4 text-amber-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-amber-800">Customer Notes</h3>
+                  </div>
+                  <p className="text-amber-700 bg-white p-4 rounded-lg shadow-sm italic">"{orderDetailsData.notes}"</p>
                 </div>
               )}
 
-              <div>
-                <Label className="text-sm font-medium text-slate-700">المنتجات المطلوبة</Label>
-                <div className="mt-2 space-y-2">
+              {/* Order Items */}
+              <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <Package className="h-5 w-5 text-emerald-600" />
+                  <h3 className="text-lg font-semibold text-slate-800">Ordered Products</h3>
+                </div>
+                <div className="space-y-3">
                   {orderDetailsData.items.map((item, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                      <img src={item.product.image} alt={item.product.name} className="w-12 h-12 object-cover rounded" />
+                    <div key={index} className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg border border-slate-100 hover:shadow-md transition-shadow">
+                      <img 
+                        src={item.product.image} 
+                        alt={item.product.name} 
+                        className="w-16 h-16 object-cover rounded-lg border-2 border-white shadow-sm" 
+                      />
                       <div className="flex-1">
-                        <p className="font-medium text-sm">{item.product.name}</p>
-                        <p className="text-xs text-slate-500">{item.product.category}</p>
-                        <p className="text-xs text-slate-600">الكمية: {item.quantity} × ₪{item.product.price} = ₪{item.quantity * item.product.price}</p>
+                        <h4 className="font-semibold text-slate-800 text-base">{item.product.name}</h4>
+                        <p className="text-sm text-slate-500 mb-1">{item.product.category}</p>
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="text-slate-600">Quantity: <span className="font-semibold text-blue-600">{item.quantity}</span></span>
+                          <span className="text-slate-600">Unit Price: <span className="font-semibold text-emerald-600">₪{item.product.price}</span></span>
+                          <span className="text-slate-600">Total: <span className="font-bold text-emerald-700">₪{item.quantity * item.product.price}</span></span>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
+
+              {/* Order Total */}
+              <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white/20 rounded-lg">
+                      <CreditCard className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="text-emerald-100 text-sm font-medium">Order Total</p>
+                      <p className="text-3xl font-bold">₪{orderDetailsData.total}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-emerald-100 text-sm">Payment Status</p>
+                    <p className="text-lg font-semibold">
+                      {orderDetailsData.status === 'completed' ? 'Confirmed' : 
+                       orderDetailsData.status === 'cancelled' ? 'Cancelled' : 'Pending'}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
-          <DialogFooter>
-            <Button onClick={() => setIsOrderDetailsOpen(false)} className="text-sm">
-              إغلاق
+          
+          <DialogFooter className="pt-6 border-t border-slate-200">
+            <Button 
+              onClick={() => setIsOrderDetailsOpen(false)} 
+              className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2"
+            >
+              Close Details
             </Button>
           </DialogFooter>
         </DialogContent>
