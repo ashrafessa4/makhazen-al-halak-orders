@@ -96,7 +96,7 @@ const CheckoutForm = ({ onSubmit, onBack, total }: CheckoutFormProps) => {
             
             <div className="space-y-2">
               <Label htmlFor="notes" className="text-barber-dark font-semibold drop-shadow-sm">
-                ملاحظات إضافية
+                ملاحظات إضافية (اختياري)
               </Label>
               <Textarea
                 id="notes"

@@ -1,5 +1,5 @@
 
-import { ShoppingCart, Trash2, Plus, Minus, X } from 'lucide-react';
+import { ShoppingCart, Trash2, Plus, Minus, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -131,6 +131,18 @@ const CartDrawer = ({
               </div>
             </>
           )}
+          
+          {/* Always visible Go Back button */}
+          <div className="border-t pt-3 flex-shrink-0">
+            <Button
+              onClick={onClose}
+              variant="outline"
+              className="w-full border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 text-lg rounded-lg transition-all duration-200"
+            >
+              <ArrowRight className="ml-2 h-5 w-5" />
+              العودة للتسوق
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
