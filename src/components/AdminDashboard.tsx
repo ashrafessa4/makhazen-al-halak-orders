@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useProducts } from '@/hooks/useProducts';
 import { toast } from 'sonner';
-import { Check, X, Clock, RotateCcw, ShoppingCart, DollarSign, TrendingUp, Package, Calendar, MapPin, User, Store } from 'lucide-react';
+import { Check, X, Clock, RotateCcw, ShoppingCart, DollarSign, TrendingUp, Package, BarChart3 } from 'lucide-react';
 
 interface AdminDashboardProps {
   orders: Order[];
@@ -192,11 +192,11 @@ const AdminDashboard = ({
         <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-lg">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-100 text-xs font-medium">متوسط الطلب</p>
-                <p className="text-2xl font-bold">₪{stats.avgOrderValue.toFixed(0)}</p>
+              <div className="text-center w-full">
+                <p className="text-purple-100 text-xs font-medium mb-1">متوسط الطلب</p>
+                <p className="text-xl font-bold whitespace-nowrap">₪{stats.avgOrderValue.toFixed(0)}</p>
               </div>
-              <TrendingUp className="h-8 w-8 text-purple-200" />
+              <TrendingUp className="h-6 w-6 text-purple-200 flex-shrink-0 ml-2" />
             </div>
           </CardContent>
         </Card>
@@ -204,11 +204,11 @@ const AdminDashboard = ({
         <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-0 shadow-lg">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-emerald-100 text-xs font-medium">إجمالي المبيعات</p>
-                <p className="text-2xl font-bold">₪{stats.totalRevenue.toFixed(0)}</p>
+              <div className="text-center w-full">
+                <p className="text-emerald-100 text-xs font-medium mb-1">إجمالي المبيعات</p>
+                <p className="text-xl font-bold whitespace-nowrap">₪{stats.totalRevenue.toFixed(0)}</p>
               </div>
-              <DollarSign className="h-8 w-8 text-emerald-200" />
+              <DollarSign className="h-6 w-6 text-emerald-200 flex-shrink-0 ml-2" />
             </div>
           </CardContent>
         </Card>
@@ -216,11 +216,11 @@ const AdminDashboard = ({
         <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100 text-xs font-medium">إجمالي الطلبات</p>
-                <p className="text-2xl font-bold">{stats.totalOrders}</p>
+              <div className="text-center w-full">
+                <p className="text-blue-100 text-xs font-medium mb-1">إجمالي الطلبات</p>
+                <p className="text-xl font-bold">{stats.totalOrders}</p>
               </div>
-              <ShoppingCart className="h-8 w-8 text-blue-200" />
+              <ShoppingCart className="h-6 w-6 text-blue-200 flex-shrink-0 ml-2" />
             </div>
           </CardContent>
         </Card>
@@ -228,11 +228,11 @@ const AdminDashboard = ({
         <Card className="bg-gradient-to-br from-amber-500 to-amber-600 text-white border-0 shadow-lg">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-amber-100 text-xs font-medium">في الانتظار</p>
-                <p className="text-2xl font-bold">{stats.pendingOrders}</p>
+              <div className="text-center w-full">
+                <p className="text-amber-100 text-xs font-medium mb-1">في الانتظار</p>
+                <p className="text-xl font-bold">{stats.pendingOrders}</p>
               </div>
-              <Clock className="h-8 w-8 text-amber-200" />
+              <Clock className="h-6 w-6 text-amber-200 flex-shrink-0 ml-2" />
             </div>
           </CardContent>
         </Card>
@@ -240,11 +240,11 @@ const AdminDashboard = ({
         <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0 shadow-lg">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100 text-xs font-medium">مكتملة</p>
-                <p className="text-2xl font-bold">{stats.completedOrders}</p>
+              <div className="text-center w-full">
+                <p className="text-green-100 text-xs font-medium mb-1">مكتملة</p>
+                <p className="text-xl font-bold">{stats.completedOrders}</p>
               </div>
-              <Check className="h-8 w-8 text-green-200" />
+              <Check className="h-6 w-6 text-green-200 flex-shrink-0 ml-2" />
             </div>
           </CardContent>
         </Card>
@@ -252,11 +252,11 @@ const AdminDashboard = ({
         <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white border-0 shadow-lg">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-red-100 text-xs font-medium">ملغية</p>
-                <p className="text-2xl font-bold">{stats.cancelledOrders}</p>
+              <div className="text-center w-full">
+                <p className="text-red-100 text-xs font-medium mb-1">ملغية</p>
+                <p className="text-xl font-bold">{stats.cancelledOrders}</p>
               </div>
-              <X className="h-8 w-8 text-red-200" />
+              <X className="h-6 w-6 text-red-200 flex-shrink-0 ml-2" />
             </div>
           </CardContent>
         </Card>
@@ -281,54 +281,56 @@ const AdminDashboard = ({
               {recentOrders.length === 0 ? <div className="text-center py-12 text-slate-500">
                   <Package className="h-12 w-12 mx-auto mb-4 text-slate-300" />
                   <p>لا توجد طلبات بعد</p>
-                </div> : <Table>
-                  <TableHeader>
-                    <TableRow className="bg-slate-50">
-                      <TableHead className="text-slate-700 font-semibold">رقم الطلب</TableHead>
-                      <TableHead className="text-slate-700 font-semibold">العميل</TableHead>
-                      <TableHead className="text-slate-700 font-semibold">المتجر</TableHead>
-                      <TableHead className="text-slate-700 font-semibold">المدينة</TableHead>
-                      <TableHead className="text-slate-700 font-semibold">المبلغ</TableHead>
-                      <TableHead className="text-slate-700 font-semibold">الحالة</TableHead>
-                      <TableHead className="text-slate-700 font-semibold">التاريخ</TableHead>
-                      <TableHead className="text-slate-700 font-semibold">إجراءات</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentOrders.map(order => <TableRow key={order.id} className="hover:bg-slate-50">
-                        <TableCell className="font-mono text-sm font-medium text-blue-600">#{order.orderNumber}</TableCell>
-                        <TableCell className="font-medium text-slate-800">{order.customerName}</TableCell>
-                        <TableCell className="text-slate-600">{order.shopName}</TableCell>
-                        <TableCell className="text-slate-600">{order.city}</TableCell>
-                        <TableCell className="font-bold text-emerald-600">₪{order.total}</TableCell>
-                        <TableCell>{getStatusBadge(order.status)}</TableCell>
-                        <TableCell className="text-sm text-slate-500">{formatDate(order.date)}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            {order.status === 'pending' && <>
-                                <Button size="sm" className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
-                                  <Check className="h-3 w-3" />
-                                </Button>
-                                <Button size="sm" className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
-                                  <X className="h-3 w-3" />
-                                </Button>
-                              </>}
-                            {(order.status === 'completed' || order.status === 'cancelled') && <>
-                                <Button size="sm" className="h-7 w-7 p-0 bg-amber-500 hover:bg-amber-600 text-white" onClick={() => openStatusDialog(order, 'pending')}>
-                                  <RotateCcw className="h-3 w-3" />
-                                </Button>
-                                {order.status === 'completed' && <Button size="sm" className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
-                                    <X className="h-3 w-3" />
-                                  </Button>}
-                                {order.status === 'cancelled' && <Button size="sm" className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
+                </div> : <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-slate-50">
+                        <TableHead className="text-slate-700 font-semibold min-w-[100px]">رقم الطلب</TableHead>
+                        <TableHead className="text-slate-700 font-semibold min-w-[100px]">العميل</TableHead>
+                        <TableHead className="text-slate-700 font-semibold min-w-[100px] hidden sm:table-cell">المتجر</TableHead>
+                        <TableHead className="text-slate-700 font-semibold min-w-[80px] hidden md:table-cell">المدينة</TableHead>
+                        <TableHead className="text-slate-700 font-semibold min-w-[80px]">المبلغ</TableHead>
+                        <TableHead className="text-slate-700 font-semibold min-w-[80px]">الحالة</TableHead>
+                        <TableHead className="text-slate-700 font-semibold min-w-[120px] hidden lg:table-cell">التاريخ</TableHead>
+                        <TableHead className="text-slate-700 font-semibold min-w-[100px]">إجراءات</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recentOrders.map(order => <TableRow key={order.id} className="hover:bg-slate-50">
+                          <TableCell className="font-mono text-sm font-medium text-blue-600">#{order.orderNumber}</TableCell>
+                          <TableCell className="font-medium text-slate-800">{order.customerName}</TableCell>
+                          <TableCell className="text-slate-600 hidden sm:table-cell">{order.shopName}</TableCell>
+                          <TableCell className="text-slate-600 hidden md:table-cell">{order.city}</TableCell>
+                          <TableCell className="font-bold text-emerald-600">₪{order.total}</TableCell>
+                          <TableCell>{getStatusBadge(order.status)}</TableCell>
+                          <TableCell className="text-sm text-slate-500 hidden lg:table-cell">{formatDate(order.date)}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              {order.status === 'pending' && <>
+                                  <Button size="sm" className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
                                     <Check className="h-3 w-3" />
-                                  </Button>}
-                              </>}
-                          </div>
-                        </TableCell>
-                      </TableRow>)}
-                  </TableBody>
-                </Table>}
+                                  </Button>
+                                  <Button size="sm" className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </>}
+                              {(order.status === 'completed' || order.status === 'cancelled') && <>
+                                  <Button size="sm" className="h-7 w-7 p-0 bg-amber-500 hover:bg-amber-600 text-white" onClick={() => openStatusDialog(order, 'pending')}>
+                                    <RotateCcw className="h-3 w-3" />
+                                  </Button>
+                                  {order.status === 'completed' && <Button size="sm" className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
+                                      <X className="h-3 w-3" />
+                                    </Button>}
+                                  {order.status === 'cancelled' && <Button size="sm" className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
+                                      <Check className="h-3 w-3" />
+                                    </Button>}
+                                </>}
+                            </div>
+                          </TableCell>
+                        </TableRow>)}
+                    </TableBody>
+                  </Table>
+                </div>}
             </CardContent>
           </Card>
         </TabsContent>
@@ -387,29 +389,29 @@ const AdminDashboard = ({
               {orders.length === 0 ? <div className="text-center py-12 text-slate-500">
                   <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-slate-300" />
                   <p>لا توجد طلبات بعد</p>
-                </div> : <div className="max-h-96 overflow-y-auto">
+                </div> : <div className="max-h-96 overflow-y-auto overflow-x-auto">
                   <Table>
                     <TableHeader className="sticky top-0 bg-slate-50 z-10">
                       <TableRow>
-                        <TableHead className="text-slate-700 font-semibold">رقم الطلب</TableHead>
-                        <TableHead className="text-slate-700 font-semibold">العميل</TableHead>
-                        <TableHead className="text-slate-700 font-semibold">المتجر</TableHead>
-                        <TableHead className="text-slate-700 font-semibold">المدينة</TableHead>
-                        <TableHead className="text-slate-700 font-semibold">المبلغ</TableHead>
-                        <TableHead className="text-slate-700 font-semibold">الحالة</TableHead>
-                        <TableHead className="text-slate-700 font-semibold">التاريخ</TableHead>
-                        <TableHead className="text-slate-700 font-semibold">إجراءات</TableHead>
+                        <TableHead className="text-slate-700 font-semibold min-w-[100px]">رقم الطلب</TableHead>
+                        <TableHead className="text-slate-700 font-semibold min-w-[100px]">العميل</TableHead>
+                        <TableHead className="text-slate-700 font-semibold min-w-[100px] hidden sm:table-cell">المتجر</TableHead>
+                        <TableHead className="text-slate-700 font-semibold min-w-[80px] hidden md:table-cell">المدينة</TableHead>
+                        <TableHead className="text-slate-700 font-semibold min-w-[80px]">المبلغ</TableHead>
+                        <TableHead className="text-slate-700 font-semibold min-w-[80px]">الحالة</TableHead>
+                        <TableHead className="text-slate-700 font-semibold min-w-[120px] hidden lg:table-cell">التاريخ</TableHead>
+                        <TableHead className="text-slate-700 font-semibold min-w-[100px]">إجراءات</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {orders.map(order => <TableRow key={order.id} className="hover:bg-slate-50">
                           <TableCell className="font-mono text-sm font-medium text-blue-600">#{order.orderNumber}</TableCell>
                           <TableCell className="font-medium text-slate-800">{order.customerName}</TableCell>
-                          <TableCell className="text-slate-600">{order.shopName}</TableCell>
-                          <TableCell className="text-slate-600">{order.city}</TableCell>
+                          <TableCell className="text-slate-600 hidden sm:table-cell">{order.shopName}</TableCell>
+                          <TableCell className="text-slate-600 hidden md:table-cell">{order.city}</TableCell>
                           <TableCell className="font-bold text-emerald-600">₪{order.total}</TableCell>
                           <TableCell>{getStatusBadge(order.status)}</TableCell>
-                          <TableCell className="text-sm text-slate-500">{formatDate(order.date)}</TableCell>
+                          <TableCell className="text-sm text-slate-500 hidden lg:table-cell">{formatDate(order.date)}</TableCell>
                           <TableCell>
                             <div className="flex gap-1">
                               {order.status === 'pending' && <>
@@ -441,6 +443,20 @@ const AdminDashboard = ({
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Analytics Button at the bottom */}
+      <div className="flex justify-center pt-8 pb-4">
+        <Button 
+          className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+          onClick={() => {
+            // Navigate to analytics page - you can implement this navigation later
+            toast("سيتم إضافة صفحة التحليلات قريباً");
+          }}
+        >
+          <BarChart3 className="h-5 w-5 mr-2" />
+          التحليلات المتقدمة
+        </Button>
+      </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md">
