@@ -26,18 +26,11 @@ export const useAdmin = () => {
     console.log('Attempting login for email:', email);
     
     try {
-      // First, let's see what emails are actually in the database
-      const { data: allAdmins, error: debugError } = await supabase
-        .from('admin_users')
-        .select('email');
-      
-      console.log('All admin emails in database:', allAdmins);
-
-      // Query for admin user with case-insensitive email search using ilike with wildcard pattern
+      // Query for admin user with exact email match (convert input to lowercase)
       const { data: adminUsers, error } = await supabase
         .from('admin_users')
         .select('*')
-        .ilike('email', email);
+        .eq('email', email.toLowerCase());
 
       console.log('Database query result:', { adminUsers, error });
 
@@ -55,8 +48,7 @@ export const useAdmin = () => {
       const adminUser = adminUsers && adminUsers.length > 0 ? adminUsers[0] : null;
 
       if (!adminUser) {
-        console.log('No admin user found for email:', email);
-        console.log('Available emails:', allAdmins?.map(a => a.email));
+        console.log('No admin user found for email:', email.toLowerCase());
         toast({
           title: "خطأ في تسجيل الدخول",
           description: "البريد الإلكتروني غير مسجل",
