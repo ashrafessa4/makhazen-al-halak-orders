@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useProducts } from '@/hooks/useProducts';
 import { toast } from 'sonner';
 import { Check, X, Clock, RotateCcw, ShoppingCart, DollarSign, TrendingUp, Package, BarChart3 } from 'lucide-react';
+import AdvancedAnalytics from '@/components/AdvancedAnalytics';
 
 interface AdminDashboardProps {
   orders: Order[];
@@ -21,6 +22,7 @@ const AdminDashboard = ({
   orders: propOrders
 }: AdminDashboardProps) => {
   const [orders, setOrders] = useState<Order[]>(propOrders);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const [stats, setStats] = useState({
     totalOrders: 0,
     totalRevenue: 0,
@@ -77,20 +79,22 @@ const AdminDashboard = ({
   }, []);
   useEffect(() => {
     const totalOrders = orders.length;
-    const totalRevenue = orders.filter(o => o.status !== 'cancelled').reduce((sum, order) => sum + order.total, 0);
-    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    // Only count completed orders for total revenue
+    const totalRevenue = orders.filter(o => o.status === 'completed').reduce((sum, order) => sum + order.total, 0);
+    const completedOrdersCount = orders.filter(o => o.status === 'completed').length;
+    const avgOrderValue = completedOrdersCount > 0 ? totalRevenue / completedOrdersCount : 0;
     const pendingOrders = orders.filter(o => o.status === 'pending').length;
     const completedOrders = orders.filter(o => o.status === 'completed').length;
     const cancelledOrders = orders.filter(o => o.status === 'cancelled').length;
 
-    // Calculate top products with revenue
+    // Calculate top products with revenue (only from completed orders)
     const productSales: {
       [key: string]: {
         quantity: number;
         revenue: number;
       };
     } = {};
-    orders.filter(o => o.status !== 'cancelled').forEach(order => {
+    orders.filter(o => o.status === 'completed').forEach(order => {
       if (order.items && Array.isArray(order.items)) {
         order.items.forEach(item => {
           if (item.product && item.product.id) {
@@ -179,11 +183,11 @@ const AdminDashboard = ({
     }).format(date);
   };
   const recentOrders = orders.slice(0, 8);
-  const todayOrders = orders.filter(order => {
-    const today = new Date();
-    const orderDate = new Date(order.date);
-    return orderDate.toDateString() === today.toDateString();
-  });
+
+  if (showAnalytics) {
+    return <AdvancedAnalytics orders={orders} products={products} onBack={() => setShowAnalytics(false)} />;
+  }
+
   return <div className="space-y-6 p-4 bg-slate-50 min-h-screen">
       
       
@@ -270,7 +274,7 @@ const AdminDashboard = ({
         </TabsList>
 
         <TabsContent value="recent" className="space-y-4 mt-6">
-          <Card className="shadow-sm border-0 bg-white">
+          <Card className="shadow-sm border-0 bg-white -mx-4 sm:mx-0">
             <CardHeader className="pb-4 border-b bg-slate-50">
               <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                 <Package className="h-5 w-5" />
@@ -285,43 +289,43 @@ const AdminDashboard = ({
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-slate-50">
-                        <TableHead className="text-slate-700 font-semibold min-w-[100px]">رقم الطلب</TableHead>
-                        <TableHead className="text-slate-700 font-semibold min-w-[100px]">العميل</TableHead>
-                        <TableHead className="text-slate-700 font-semibold min-w-[100px] hidden sm:table-cell">المتجر</TableHead>
-                        <TableHead className="text-slate-700 font-semibold min-w-[80px] hidden md:table-cell">المدينة</TableHead>
-                        <TableHead className="text-slate-700 font-semibold min-w-[80px]">المبلغ</TableHead>
-                        <TableHead className="text-slate-700 font-semibold min-w-[80px]">الحالة</TableHead>
-                        <TableHead className="text-slate-700 font-semibold min-w-[120px] hidden lg:table-cell">التاريخ</TableHead>
-                        <TableHead className="text-slate-700 font-semibold min-w-[100px]">إجراءات</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">رقم الطلب</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">العميل</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2 hidden sm:table-cell">المتجر</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2 hidden md:table-cell">المدينة</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">المبلغ</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">الحالة</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2 hidden lg:table-cell">التاريخ</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">إجراءات</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {recentOrders.map(order => <TableRow key={order.id} className="hover:bg-slate-50">
-                          <TableCell className="font-mono text-sm font-medium text-blue-600">#{order.orderNumber}</TableCell>
-                          <TableCell className="font-medium text-slate-800">{order.customerName}</TableCell>
-                          <TableCell className="text-slate-600 hidden sm:table-cell">{order.shopName}</TableCell>
-                          <TableCell className="text-slate-600 hidden md:table-cell">{order.city}</TableCell>
-                          <TableCell className="font-bold text-emerald-600">₪{order.total}</TableCell>
-                          <TableCell>{getStatusBadge(order.status)}</TableCell>
-                          <TableCell className="text-sm text-slate-500 hidden lg:table-cell">{formatDate(order.date)}</TableCell>
-                          <TableCell>
+                          <TableCell className="font-mono text-xs font-medium text-blue-600 px-2">#{order.orderNumber}</TableCell>
+                          <TableCell className="font-medium text-xs text-slate-800 px-2">{order.customerName}</TableCell>
+                          <TableCell className="text-xs text-slate-600 hidden sm:table-cell px-2">{order.shopName}</TableCell>
+                          <TableCell className="text-xs text-slate-600 hidden md:table-cell px-2">{order.city}</TableCell>
+                          <TableCell className="font-bold text-xs text-emerald-600 px-2">₪{order.total}</TableCell>
+                          <TableCell className="px-2">{getStatusBadge(order.status)}</TableCell>
+                          <TableCell className="text-xs text-slate-500 hidden lg:table-cell px-2">{formatDate(order.date)}</TableCell>
+                          <TableCell className="px-2">
                             <div className="flex gap-1">
                               {order.status === 'pending' && <>
-                                  <Button size="sm" className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
+                                  <Button size="sm" className="h-6 w-6 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
                                     <Check className="h-3 w-3" />
                                   </Button>
-                                  <Button size="sm" className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
+                                  <Button size="sm" className="h-6 w-6 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
                                     <X className="h-3 w-3" />
                                   </Button>
                                 </>}
                               {(order.status === 'completed' || order.status === 'cancelled') && <>
-                                  <Button size="sm" className="h-7 w-7 p-0 bg-amber-500 hover:bg-amber-600 text-white" onClick={() => openStatusDialog(order, 'pending')}>
+                                  <Button size="sm" className="h-6 w-6 p-0 bg-amber-500 hover:bg-amber-600 text-white" onClick={() => openStatusDialog(order, 'pending')}>
                                     <RotateCcw className="h-3 w-3" />
                                   </Button>
-                                  {order.status === 'completed' && <Button size="sm" className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
+                                  {order.status === 'completed' && <Button size="sm" className="h-6 w-6 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
                                       <X className="h-3 w-3" />
                                     </Button>}
-                                  {order.status === 'cancelled' && <Button size="sm" className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
+                                  {order.status === 'cancelled' && <Button size="sm" className="h-6 w-6 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
                                       <Check className="h-3 w-3" />
                                     </Button>}
                                 </>}
@@ -378,7 +382,7 @@ const AdminDashboard = ({
         </TabsContent>
 
         <TabsContent value="all" className="space-y-4 mt-6">
-          <Card className="shadow-sm border-0 bg-white">
+          <Card className="shadow-sm border-0 bg-white -mx-4 sm:mx-0">
             <CardHeader className="pb-4 border-b bg-slate-50">
               <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                 <ShoppingCart className="h-5 w-5" />
@@ -393,43 +397,43 @@ const AdminDashboard = ({
                   <Table>
                     <TableHeader className="sticky top-0 bg-slate-50 z-10">
                       <TableRow>
-                        <TableHead className="text-slate-700 font-semibold min-w-[100px]">رقم الطلب</TableHead>
-                        <TableHead className="text-slate-700 font-semibold min-w-[100px]">العميل</TableHead>
-                        <TableHead className="text-slate-700 font-semibold min-w-[100px] hidden sm:table-cell">المتجر</TableHead>
-                        <TableHead className="text-slate-700 font-semibold min-w-[80px] hidden md:table-cell">المدينة</TableHead>
-                        <TableHead className="text-slate-700 font-semibold min-w-[80px]">المبلغ</TableHead>
-                        <TableHead className="text-slate-700 font-semibold min-w-[80px]">الحالة</TableHead>
-                        <TableHead className="text-slate-700 font-semibold min-w-[120px] hidden lg:table-cell">التاريخ</TableHead>
-                        <TableHead className="text-slate-700 font-semibold min-w-[100px]">إجراءات</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">رقم الطلب</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">العميل</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2 hidden sm:table-cell">المتجر</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2 hidden md:table-cell">المدينة</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">المبلغ</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">الحالة</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2 hidden lg:table-cell">التاريخ</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2">إجراءات</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {orders.map(order => <TableRow key={order.id} className="hover:bg-slate-50">
-                          <TableCell className="font-mono text-sm font-medium text-blue-600">#{order.orderNumber}</TableCell>
-                          <TableCell className="font-medium text-slate-800">{order.customerName}</TableCell>
-                          <TableCell className="text-slate-600 hidden sm:table-cell">{order.shopName}</TableCell>
-                          <TableCell className="text-slate-600 hidden md:table-cell">{order.city}</TableCell>
-                          <TableCell className="font-bold text-emerald-600">₪{order.total}</TableCell>
-                          <TableCell>{getStatusBadge(order.status)}</TableCell>
-                          <TableCell className="text-sm text-slate-500 hidden lg:table-cell">{formatDate(order.date)}</TableCell>
-                          <TableCell>
+                          <TableCell className="font-mono text-xs font-medium text-blue-600 px-2">#{order.orderNumber}</TableCell>
+                          <TableCell className="font-medium text-xs text-slate-800 px-2">{order.customerName}</TableCell>
+                          <TableCell className="text-xs text-slate-600 hidden sm:table-cell px-2">{order.shopName}</TableCell>
+                          <TableCell className="text-xs text-slate-600 hidden md:table-cell px-2">{order.city}</TableCell>
+                          <TableCell className="font-bold text-xs text-emerald-600 px-2">₪{order.total}</TableCell>
+                          <TableCell className="px-2">{getStatusBadge(order.status)}</TableCell>
+                          <TableCell className="text-xs text-slate-500 hidden lg:table-cell px-2">{formatDate(order.date)}</TableCell>
+                          <TableCell className="px-2">
                             <div className="flex gap-1">
                               {order.status === 'pending' && <>
-                                  <Button size="sm" className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
+                                  <Button size="sm" className="h-6 w-6 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
                                     <Check className="h-3 w-3" />
                                   </Button>
-                                  <Button size="sm" className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
+                                  <Button size="sm" className="h-6 w-6 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
                                     <X className="h-3 w-3" />
                                   </Button>
                                 </>}
                               {(order.status === 'completed' || order.status === 'cancelled') && <>
-                                  <Button size="sm" className="h-7 w-7 p-0 bg-amber-500 hover:bg-amber-600 text-white" onClick={() => openStatusDialog(order, 'pending')}>
+                                  <Button size="sm" className="h-6 w-6 p-0 bg-amber-500 hover:bg-amber-600 text-white" onClick={() => openStatusDialog(order, 'pending')}>
                                     <RotateCcw className="h-3 w-3" />
                                   </Button>
-                                  {order.status === 'completed' && <Button size="sm" className="h-7 w-7 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
+                                  {order.status === 'completed' && <Button size="sm" className="h-6 w-6 p-0 bg-red-500 hover:bg-red-600 text-white" onClick={() => openStatusDialog(order, 'cancelled')}>
                                       <X className="h-3 w-3" />
                                     </Button>}
-                                  {order.status === 'cancelled' && <Button size="sm" className="h-7 w-7 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
+                                  {order.status === 'cancelled' && <Button size="sm" className="h-6 w-6 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
                                       <Check className="h-3 w-3" />
                                     </Button>}
                                 </>}
@@ -448,10 +452,7 @@ const AdminDashboard = ({
       <div className="flex justify-center pt-8 pb-4">
         <Button 
           className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
-          onClick={() => {
-            // Navigate to analytics page - you can implement this navigation later
-            toast("سيتم إضافة صفحة التحليلات قريباً");
-          }}
+          onClick={() => setShowAnalytics(true)}
         >
           <BarChart3 className="h-5 w-5 mr-2" />
           التحليلات المتقدمة
