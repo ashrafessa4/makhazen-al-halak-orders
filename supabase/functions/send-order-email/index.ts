@@ -57,106 +57,68 @@ const handler = async (req: Request): Promise<Response> => {
       </tr>
     `).join('');
 
-    // Use a different sender address to avoid triggering Resend's welcome email
+    // Use a simple sender address to avoid any delivery issues
     const emailResponse = await resend.emails.send({
-      from: "متجر أدوات الحلاقة <orders@resend.dev>",
+      from: "orders@resend.dev",
       to: [adminEmail],
-      subject: `طلب جديد رقم ${order.orderNumber} - ${order.customerName}`,
+      subject: `New Order ${order.orderNumber} - ${order.customerName}`,
       html: `
-        <!DOCTYPE html>
-        <html dir="rtl" lang="ar">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>طلب جديد</title>
-        </head>
-        <body style="font-family: 'Cairo', Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; direction: rtl;">
-          <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden;">
-            
-            <!-- Header -->
-            <div style="background: linear-gradient(135deg, #1e40af, #059669); color: white; padding: 30px 20px; text-align: center;">
-              <h1 style="margin: 0; font-size: 28px; font-weight: bold;">🆕 طلب جديد</h1>
-              <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">رقم الطلب: ${order.orderNumber}</p>
-            </div>
-
-            <!-- Customer Info -->
-            <div style="padding: 30px 20px;">
-              <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 22px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">معلومات العميل</h2>
-              
-              <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-                <div style="display: grid; gap: 15px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: bold; color: #374151;">👤 اسم العميل:</span>
-                    <span style="color: #1f2937;">${order.customerName}</span>
-                  </div>
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: bold; color: #374151;">🏪 اسم الصالون:</span>
-                    <span style="color: #1f2937;">${order.shopName}</span>
-                  </div>
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: bold; color: #374151;">📍 المدينة:</span>
-                    <span style="color: #1f2937;">${order.city}</span>
-                  </div>
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: bold; color: #374151;">📅 تاريخ الطلب:</span>
-                    <span style="color: #1f2937;">${new Date(order.date).toLocaleDateString('ar-EG')}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Products Table -->
-              <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 22px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">📦 المنتجات المطلوبة</h2>
-              
-              <div style="overflow-x: auto; margin-bottom: 30px;">
-                <table style="width: 100%; border-collapse: collapse; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                  <thead>
-                    <tr style="background: linear-gradient(135deg, #1e40af, #059669); color: white;">
-                      <th style="padding: 15px; text-align: right; font-weight: bold;">اسم المنتج</th>
-                      <th style="padding: 15px; text-align: center; font-weight: bold;">الكمية</th>
-                      <th style="padding: 15px; text-align: center; font-weight: bold;">السعر</th>
-                      <th style="padding: 15px; text-align: center; font-weight: bold;">المجموع</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${itemsHtml}
-                  </tbody>
-                </table>
-              </div>
-
-              <!-- Total -->
-              <div style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 30px;">
-                <h3 style="margin: 0; font-size: 24px; font-weight: bold;">💰 المبلغ الإجمالي: ₪${order.total.toFixed(2)}</h3>
-              </div>
-
-              ${order.notes ? `
-                <!-- Notes -->
-                <div style="background-color: #fef3c7; border-right: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-                  <h3 style="color: #92400e; margin: 0 0 10px 0; font-size: 18px;">📝 ملاحظات العميل:</h3>
-                  <p style="color: #92400e; margin: 0; font-size: 16px; line-height: 1.6;">${order.notes}</p>
-                </div>
-              ` : ''}
-
-              <!-- Action Required -->
-              <div style="background-color: #dbeafe; border-right: 4px solid #3b82f6; padding: 20px; border-radius: 8px;">
-                <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 18px;">⚡ الإجراءات المطلوبة:</h3>
-                <ul style="color: #1e40af; margin: 0; padding-right: 20px; line-height: 1.8;">
-                  <li>التواصل مع العميل لتأكيد الطلب</li>
-                  <li>تحضير المنتجات المطلوبة</li>
-                  <li>تنسيق عملية التوصيل</li>
-                  <li>تحصيل المبلغ عند التسليم</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- Footer -->
-            <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
-              <p style="margin: 0; color: #6b7280; font-size: 14px;">
-                تم إرسال هذا البريد الإلكتروني تلقائياً من نظام متجر أدوات الحلاقة
-              </p>
-            </div>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #333; text-align: center;">New Order Received!</h1>
+          
+          <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h2 style="color: #333; margin-top: 0;">Order Information</h2>
+            <p><strong>Order Number:</strong> ${order.orderNumber}</p>
+            <p><strong>Customer Name:</strong> ${order.customerName}</p>
+            <p><strong>Shop Name:</strong> ${order.shopName}</p>
+            <p><strong>City:</strong> ${order.city}</p>
+            <p><strong>Order Date:</strong> ${new Date(order.date).toLocaleDateString()}</p>
           </div>
-        </body>
-        </html>
+
+          <div style="margin: 20px 0;">
+            <h2 style="color: #333;">Ordered Items</h2>
+            <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
+              <thead>
+                <tr style="background-color: #f9f9f9;">
+                  <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Product</th>
+                  <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Quantity</th>
+                  <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Price</th>
+                  <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsHtml}
+              </tbody>
+            </table>
+          </div>
+
+          <div style="background-color: #e8f5e8; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin: 0; color: #2d5a2d;">Order Total: ₪${order.total.toFixed(2)}</h3>
+          </div>
+
+          ${order.notes ? `
+            <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #856404; margin-top: 0;">Customer Notes:</h3>
+              <p style="color: #856404; margin-bottom: 0;">${order.notes}</p>
+            </div>
+          ` : ''}
+
+          <div style="background-color: #d1ecf1; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #0c5460; margin-top: 0;">Next Steps:</h3>
+            <ul style="color: #0c5460; margin-bottom: 0;">
+              <li>Contact the customer to confirm the order</li>
+              <li>Prepare the requested products</li>
+              <li>Arrange delivery</li>
+              <li>Collect payment upon delivery</li>
+            </ul>
+          </div>
+
+          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+            <p style="color: #666; font-size: 14px;">
+              This email was sent automatically from the Barber Tools Store system
+            </p>
+          </div>
+        </div>
       `,
     });
 
