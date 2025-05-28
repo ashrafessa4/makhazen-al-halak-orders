@@ -25,31 +25,31 @@ const AdminLogin = ({ onClose }: AdminLoginProps) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-center text-barber-dark">تسجيل دخول الإدارة</CardTitle>
+      <Card className="w-full max-w-md bg-white">
+        <CardHeader className="bg-white">
+          <CardTitle className="text-center text-gray-900">تسجيل دخول الإدارة</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="bg-white space-y-4 p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">البريد الإلكتروني</Label>
+              <Label htmlFor="email" className="text-gray-900 font-medium">البريد الإلكتروني</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="border-2 border-gray-300 focus:border-barber-blue"
+                className="border-2 border-gray-300 focus:border-barber-blue bg-white text-gray-900 placeholder:text-gray-400"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">كلمة المرور</Label>
+              <Label htmlFor="password" className="text-gray-900 font-medium">كلمة المرور</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="border-2 border-gray-300 focus:border-barber-blue"
+                className="border-2 border-gray-300 focus:border-barber-blue bg-white text-gray-900 placeholder:text-gray-400"
                 required
               />
             </div>
@@ -57,7 +57,7 @@ const AdminLogin = ({ onClose }: AdminLoginProps) => {
               <Button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-barber-blue hover:bg-barber-blue/90"
+                className="flex-1 bg-barber-blue hover:bg-barber-blue/90 text-white"
               >
                 {loading ? 'جاري التحقق...' : 'تسجيل الدخول'}
               </Button>
@@ -65,7 +65,7 @@ const AdminLogin = ({ onClose }: AdminLoginProps) => {
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="flex-1"
+                className="flex-1 bg-white text-gray-900 border-gray-300 hover:bg-gray-50"
               >
                 إلغاء
               </Button>

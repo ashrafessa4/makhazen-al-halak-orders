@@ -28,29 +28,29 @@ const AdminSettings = ({ onClose }: AdminSettingsProps) => {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <Card className="w-full max-w-md bg-white">
         <CardHeader className="bg-white">
-          <CardTitle className="text-center text-barber-dark">إعدادات الإدارة</CardTitle>
+          <CardTitle className="text-center text-gray-900">إعدادات الإدارة</CardTitle>
         </CardHeader>
-        <CardContent className="bg-white">
+        <CardContent className="bg-white space-y-4 p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="whatsapp" className="text-gray-700">رقم الواتساب</Label>
+              <Label htmlFor="whatsapp" className="text-gray-900 font-medium">رقم الواتساب</Label>
               <Input
                 id="whatsapp"
                 value={whatsappNumber}
                 onChange={(e) => setWhatsappNumber(e.target.value)}
-                className="border-2 border-gray-300 focus:border-barber-blue bg-white text-gray-900"
+                className="border-2 border-gray-300 focus:border-barber-blue bg-white text-gray-900 placeholder:text-gray-400"
                 placeholder="+972509617061"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-700">البريد الإلكتروني للإشعارات</Label>
+              <Label htmlFor="email" className="text-gray-900 font-medium">البريد الإلكتروني للإشعارات</Label>
               <Input
                 id="email"
                 type="email"
                 value={notificationEmail}
                 onChange={(e) => setNotificationEmail(e.target.value)}
-                className="border-2 border-gray-300 focus:border-barber-blue bg-white text-gray-900"
+                className="border-2 border-gray-300 focus:border-barber-blue bg-white text-gray-900 placeholder:text-gray-400"
                 placeholder="admin@example.com"
               />
             </div>
@@ -66,7 +66,7 @@ const AdminSettings = ({ onClose }: AdminSettingsProps) => {
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="flex-1 bg-white text-gray-700 border-gray-300"
+                className="flex-1 bg-white text-gray-900 border-gray-300 hover:bg-gray-50"
               >
                 إلغاء
               </Button>

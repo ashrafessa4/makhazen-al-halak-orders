@@ -86,6 +86,37 @@ const Index = () => {
       // Send WhatsApp notification with configured number
       sendWhatsAppNotification(order, config?.whatsapp_number || '+972509617061');
       
+      // Send email notification if admin email is configured
+      if (config?.notification_email) {
+        try {
+          console.log('Sending email notification to:', config.notification_email);
+          const emailResponse = await supabase.functions.invoke('send-order-email', {
+            body: {
+              order: {
+                orderNumber: order.orderNumber,
+                customerName: order.customerName,
+                shopName: order.shopName,
+                city: order.city,
+                total: order.total,
+                items: order.items,
+                notes: order.notes,
+                date: order.date.toISOString()
+              },
+              adminEmail: config.notification_email
+            }
+          });
+
+          if (emailResponse.error) {
+            console.error('Email sending error:', emailResponse.error);
+          } else {
+            console.log('Email sent successfully:', emailResponse.data);
+          }
+        } catch (emailError) {
+          console.error('Email sending failed:', emailError);
+          // Don't block the order process if email fails
+        }
+      }
+      
       // Clear cart and show confirmation
       cart.clearCart();
       setCurrentView('confirmation');
