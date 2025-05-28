@@ -272,51 +272,114 @@ export const useAdminConfig = () => {
 
   const updateConfig = async (updates: Partial<AdminConfig>) => {
     setLoading(true);
+    console.log('🔄 Starting updateConfig with updates:', updates);
+    
     try {
-      console.log('🔄 Updating admin config with:', updates);
-      
-      // First check if a config record exists
+      // Step 1: Check if a config record exists
+      console.log('🔍 Step 1: Checking for existing config...');
       const { data: existingConfig, error: fetchError } = await supabase
         .from('admin_config')
-        .select('*')
-        .single();
+        .select('*');
 
-      let result;
-      if (fetchError && fetchError.code === 'PGRST116') {
-        // No config exists, create one
-        console.log('📝 Creating new admin config...');
-        result = await supabase
-          .from('admin_config')
-          .insert(updates)
-          .select()
-          .single();
-      } else if (existingConfig) {
-        // Config exists, update it
-        console.log('🔄 Updating existing admin config...');
-        result = await supabase
-          .from('admin_config')
-          .update(updates)
-          .eq('id', existingConfig.id)
-          .select()
-          .single();
-      } else {
+      console.log('📊 Existing config fetch result:', {
+        data: existingConfig,
+        error: fetchError,
+        dataLength: existingConfig?.length,
+        errorCode: fetchError?.code
+      });
+
+      if (fetchError) {
+        console.error('❌ Error fetching existing config:', fetchError);
         throw fetchError;
       }
 
+      let result;
+      
+      if (!existingConfig || existingConfig.length === 0) {
+        // No config exists, create one
+        console.log('📝 Step 2a: No config found, creating new one...');
+        console.log('📝 Creating with data:', updates);
+        
+        result = await supabase
+          .from('admin_config')
+          .insert([updates])
+          .select()
+          .single();
+          
+        console.log('📝 Insert result:', result);
+      } else {
+        // Config exists, update it
+        const configToUpdate = existingConfig[0];
+        console.log('🔄 Step 2b: Config found, updating existing one...');
+        console.log('🔄 Existing config:', configToUpdate);
+        console.log('🔄 Update data:', updates);
+        console.log('🔄 Config ID to update:', configToUpdate.id);
+        
+        // Try the update with extensive debugging
+        console.log('🔄 Executing update query...');
+        result = await supabase
+          .from('admin_config')
+          .update(updates)
+          .eq('id', configToUpdate.id)
+          .select();
+          
+        console.log('🔄 Raw update result:', result);
+        console.log('🔄 Update result data:', result.data);
+        console.log('🔄 Update result error:', result.error);
+        console.log('🔄 Update result data length:', result.data?.length);
+        
+        // Check if we got exactly one row back
+        if (result.data && result.data.length === 1) {
+          console.log('✅ Update successful, converting to single result');
+          result.data = result.data[0];
+        } else if (result.data && result.data.length === 0) {
+          console.error('❌ Update returned 0 rows - this means the WHERE condition didn\'t match');
+          console.log('🔍 Let\'s verify the ID exists in the database...');
+          
+          const { data: verifyData, error: verifyError } = await supabase
+            .from('admin_config')
+            .select('*')
+            .eq('id', configToUpdate.id);
+            
+          console.log('🔍 ID verification result:', { verifyData, verifyError });
+          
+          throw new Error(`Update returned 0 rows. Config ID ${configToUpdate.id} might not exist.`);
+        } else if (result.data && result.data.length > 1) {
+          console.error('❌ Update returned multiple rows:', result.data.length);
+          throw new Error(`Update returned ${result.data.length} rows, expected 1.`);
+        }
+      }
+
       if (result.error) {
-        console.error('❌ Error saving config:', result.error);
+        console.error('❌ Error in database operation:', result.error);
+        console.error('❌ Error details:', {
+          code: result.error.code,
+          message: result.error.message,
+          details: result.error.details,
+          hint: result.error.hint
+        });
         throw result.error;
       }
       
-      console.log('✅ Admin config updated successfully:', result.data);
+      console.log('✅ Final result data:', result.data);
+      console.log('✅ Admin config updated successfully');
       setConfig(result.data);
       
       return result.data;
     } catch (error) {
-      console.error('Error updating config:', error);
+      console.error('💥 Error updating config:', error);
+      console.error('💥 Error type:', typeof error);
+      console.error('💥 Error constructor:', error?.constructor?.name);
+      
+      if (error instanceof Error) {
+        console.error('💥 Error message:', error.message);
+        console.error('💥 Error stack:', error.stack);
+      }
+      
       throw error;
     } finally {
       setLoading(false);
+      console.log('🏁 updateConfig process finished');
     }
   };
 
