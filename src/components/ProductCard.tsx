@@ -134,12 +134,12 @@ const ProductCard = ({ product, onAddToCart, isAdmin = false }: ProductCardProps
               }`}
             >
               {isAdding ? (
-                <span className="flex items-center gap-1">
+                <span className="flex items-center justify-center gap-1">
                   <ShoppingCart className="h-3 w-3" />
                   تمت الإضافة!
                 </span>
               ) : (
-                <span className="flex items-center gap-1">
+                <span className="flex items-center justify-center gap-1">
                   <ShoppingCart className="h-3 w-3" />
                   أضف للسلة
                 </span>
