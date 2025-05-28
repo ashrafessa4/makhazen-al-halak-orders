@@ -88,47 +88,75 @@ const Index = () => {
       // Send WhatsApp notification
       sendWhatsAppNotification(order, config?.whatsapp_number || '+972509617061');
       
-      // Send email notification
+      // Send email notification with detailed logging
       if (config?.notification_email) {
+        console.log('📧 Starting email sending process...');
+        console.log('📧 Admin email:', config.notification_email);
+        console.log('📧 Order data:', {
+          orderNumber: order.orderNumber,
+          customerName: order.customerName,
+          total: order.total,
+          itemsCount: order.items.length
+        });
+
         try {
-          console.log('Sending email notification to:', config.notification_email);
+          const emailPayload = {
+            order: {
+              orderNumber: order.orderNumber,
+              customerName: order.customerName,
+              shopName: order.shopName,
+              city: order.city,
+              total: order.total,
+              items: order.items,
+              notes: order.notes,
+              date: order.date.toISOString()
+            },
+            adminEmail: config.notification_email
+          };
+
+          console.log('📧 Calling Supabase function with payload:', emailPayload);
+
           const emailResponse = await supabase.functions.invoke('send-order-email', {
-            body: {
-              order: {
-                orderNumber: order.orderNumber,
-                customerName: order.customerName,
-                shopName: order.shopName,
-                city: order.city,
-                total: order.total,
-                items: order.items,
-                notes: order.notes,
-                date: order.date.toISOString()
-              },
-              adminEmail: config.notification_email
-            }
+            body: emailPayload
           });
 
+          console.log('📧 Email function response:', emailResponse);
+
           if (emailResponse.error) {
-            console.error('Email sending error:', emailResponse.error);
+            console.error('📧 Email sending error:', emailResponse.error);
+            toast({
+              description: "تم إرسال الطلب بنجاح ولكن فشل في إرسال البريد الإلكتروني",
+              variant: "destructive",
+            });
           } else {
-            console.log('Email sent successfully:', emailResponse.data);
+            console.log('📧 Email sent successfully:', emailResponse.data);
+            toast({
+              description: "تم إرسال الطلب والبريد الإلكتروني بنجاح!",
+            });
           }
         } catch (emailError) {
-          console.error('Email sending failed:', emailError);
+          console.error('📧 Email sending failed with exception:', emailError);
+          toast({
+            description: "تم إرسال الطلب بنجاح ولكن فشل في إرسال البريد الإلكتروني",
+            variant: "destructive",
+          });
         }
+      } else {
+        console.log('📧 No admin email configured, skipping email notification');
+        toast({
+          description: "تم إرسال الطلب بنجاح!",
+        });
       }
       
       cart.clearCart();
       setCurrentView('confirmation');
       
       toast({
-        title: "تم إرسال الطلب بنجاح!",
-        description: `رقم الطلب: ${orderNumber}`,
+        description: `تم إرسال الطلب برقم ${orderNumber}`,
       });
     } catch (error) {
       console.error('Error saving order:', error);
       toast({
-        title: "خطأ في إرسال الطلب",
         description: "حدث خطأ أثناء حفظ الطلب، يرجى المحاولة مرة أخرى",
         variant: "destructive",
       });

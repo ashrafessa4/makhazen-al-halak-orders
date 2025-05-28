@@ -11,19 +11,18 @@ export const useCart = () => {
       const existingItem = prevItems.find(item => item.product.id === product.id);
       
       if (existingItem) {
+        const newQuantity = existingItem.quantity + quantity;
         toast({
-          title: "تم تحديث الكمية",
-          description: `تم تحديث كمية ${product.name}`,
+          description: `الكمية تم تغييرها إلى ${newQuantity}`,
         });
         return prevItems.map(item =>
           item.product.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: newQuantity }
             : item
         );
       } else {
         toast({
-          title: "تم إضافة المنتج",
-          description: `تم إضافة ${product.name} إلى السلة`,
+          description: `${product.name} تم إضافته للسلة`,
         });
         return [...prevItems, { product, quantity }];
       }
@@ -34,7 +33,6 @@ export const useCart = () => {
     if (quantity <= 0) {
       setItems(prevItems => prevItems.filter(item => item.product.id !== productId));
       toast({
-        title: "تم حذف المنتج",
         description: "تم حذف المنتج من السلة",
       });
       return;
@@ -47,12 +45,15 @@ export const useCart = () => {
           : item
       )
     );
+    
+    toast({
+      description: `الكمية تم تغييرها إلى ${quantity}`,
+    });
   }, []);
 
   const removeFromCart = useCallback((productId: string) => {
     setItems(prevItems => prevItems.filter(item => item.product.id !== productId));
     toast({
-      title: "تم حذف المنتج",
       description: "تم حذف المنتج من السلة",
     });
   }, []);
