@@ -73,9 +73,10 @@ const AdminSettings = ({ onClose }: AdminSettingsProps) => {
                 id="whatsapp"
                 value={whatsappNumber}
                 onChange={(e) => setWhatsappNumber(e.target.value)}
-                className="border-2 border-gray-300 focus:border-barber-blue bg-white text-gray-900 placeholder:text-gray-500 h-12 text-lg transition-all duration-200 hover:border-gray-400"
+                className="border-2 border-gray-300 focus:border-barber-blue bg-white text-gray-900 placeholder:text-gray-500 h-12 text-lg transition-all duration-200 hover:border-gray-400 text-right"
                 placeholder="+972509617061"
                 dir="rtl"
+                style={{ textAlign: 'right' }}
               />
             </div>
             <div className="space-y-2">
@@ -85,9 +86,10 @@ const AdminSettings = ({ onClose }: AdminSettingsProps) => {
                 type="email"
                 value={notificationEmail}
                 onChange={(e) => setNotificationEmail(e.target.value)}
-                className="border-2 border-gray-300 focus:border-barber-blue bg-white text-gray-900 placeholder:text-gray-500 h-12 text-lg transition-all duration-200 hover:border-gray-400"
+                className="border-2 border-gray-300 focus:border-barber-blue bg-white text-gray-900 placeholder:text-gray-500 h-12 text-lg transition-all duration-200 hover:border-gray-400 text-right"
                 placeholder="admin@example.com"
                 dir="rtl"
+                style={{ textAlign: 'right' }}
               />
             </div>
             <p className="text-sm text-gray-600 text-center">

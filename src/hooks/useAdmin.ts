@@ -252,12 +252,18 @@ export const useAdminConfig = () => {
 
   const fetchConfig = async () => {
     try {
+      console.log('🔄 Fetching admin config...');
       const { data, error } = await supabase
         .from('admin_config')
         .select('*')
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching config:', error);
+        throw error;
+      }
+      
+      console.log('✅ Admin config fetched:', data);
       setConfig(data);
     } catch (error) {
       console.error('Error fetching config:', error);
@@ -267,14 +273,44 @@ export const useAdminConfig = () => {
   const updateConfig = async (updates: Partial<AdminConfig>) => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('admin_config')
-        .update(updates)
-        .eq('id', config?.id);
-
-      if (error) throw error;
+      console.log('🔄 Updating admin config with:', updates);
       
-      await fetchConfig();
+      // First check if a config record exists
+      const { data: existingConfig, error: fetchError } = await supabase
+        .from('admin_config')
+        .select('*')
+        .single();
+
+      let result;
+      if (fetchError && fetchError.code === 'PGRST116') {
+        // No config exists, create one
+        console.log('📝 Creating new admin config...');
+        result = await supabase
+          .from('admin_config')
+          .insert(updates)
+          .select()
+          .single();
+      } else if (existingConfig) {
+        // Config exists, update it
+        console.log('🔄 Updating existing admin config...');
+        result = await supabase
+          .from('admin_config')
+          .update(updates)
+          .eq('id', existingConfig.id)
+          .select()
+          .single();
+      } else {
+        throw fetchError;
+      }
+
+      if (result.error) {
+        console.error('❌ Error saving config:', result.error);
+        throw result.error;
+      }
+      
+      console.log('✅ Admin config updated successfully:', result.data);
+      setConfig(result.data);
+      
       toast({
         title: "تم تحديث الإعدادات",
         description: "تم حفظ التغييرات بنجاح",
@@ -286,6 +322,7 @@ export const useAdminConfig = () => {
         description: "حدث خطأ أثناء حفظ الإعدادات",
         variant: "destructive",
       });
+      throw error;
     } finally {
       setLoading(false);
     }
