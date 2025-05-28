@@ -60,25 +60,30 @@ export const useAdminConfig = () => {
         const configToUpdate = existingConfig[0];
         console.log('🔄 Updating existing admin config...');
         
-        const { data, error } = await supabase
+        // First, let's try the update without select to see if it works
+        const { error: updateError } = await supabase
           .from('admin_config')
           .update(updates)
+          .eq('id', configToUpdate.id);
+
+        if (updateError) {
+          console.error('❌ Update error:', updateError);
+          throw updateError;
+        }
+
+        // Now fetch the updated record separately
+        const { data: updatedData, error: selectError } = await supabase
+          .from('admin_config')
+          .select('*')
           .eq('id', configToUpdate.id)
-          .select();
+          .single();
 
-        if (error) {
-          throw error;
+        if (selectError) {
+          console.error('❌ Select error after update:', selectError);
+          throw selectError;
         }
 
-        // Since we're not using .single(), data will be an array
-        // We need to get the first (and should be only) item
-        const updatedRecord = data && data.length > 0 ? data[0] : null;
-        
-        if (!updatedRecord) {
-          throw new Error('No record was updated');
-        }
-        
-        result = { data: updatedRecord, error: null };
+        result = { data: updatedData, error: null };
       }
 
       if (result.error) {
