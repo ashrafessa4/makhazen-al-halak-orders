@@ -4,19 +4,59 @@ import { Order, Product } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { products } from '@/data/products';
+import { supabase } from '@/integrations/supabase/client';
+import { useProducts } from '@/hooks/useProducts';
 
 interface AdminDashboardProps {
   orders: Order[];
 }
 
-const AdminDashboard = ({ orders }: AdminDashboardProps) => {
+const AdminDashboard = ({ orders: propOrders }: AdminDashboardProps) => {
+  const [orders, setOrders] = useState<Order[]>(propOrders);
   const [stats, setStats] = useState({
     totalOrders: 0,
     totalRevenue: 0,
     avgOrderValue: 0,
     topProducts: [] as { product: Product; sales: number }[]
   });
+  const { products } = useProducts();
+
+  // Fetch orders from database
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching orders:', error);
+          return;
+        }
+
+        // Transform database orders to match Order interface
+        const transformedOrders: Order[] = data.map(order => ({
+          id: order.id,
+          orderNumber: order.order_number,
+          customerName: order.customer_name,
+          shopName: order.shop_name,
+          city: order.city,
+          notes: order.notes || '',
+          items: order.items as any, // Cast from jsonb
+          total: Number(order.total),
+          date: new Date(order.created_at),
+          status: order.status as 'pending' | 'processing' | 'completed'
+        }));
+
+        setOrders(transformedOrders);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   useEffect(() => {
     const totalOrders = orders.length;
@@ -26,24 +66,28 @@ const AdminDashboard = ({ orders }: AdminDashboardProps) => {
     // Calculate top products
     const productSales: { [key: string]: number } = {};
     orders.forEach(order => {
-      order.items.forEach(item => {
-        productSales[item.product.id] = (productSales[item.product.id] || 0) + item.quantity;
-      });
+      if (order.items && Array.isArray(order.items)) {
+        order.items.forEach(item => {
+          if (item.product && item.product.id) {
+            productSales[item.product.id] = (productSales[item.product.id] || 0) + item.quantity;
+          }
+        });
+      }
     });
 
     const topProducts = Object.entries(productSales)
-      .map(([productId, sales]) => ({
-        product: products.find(p => p.id === productId)!,
-        sales
-      }))
-      .filter(item => item.product)
-      .sort((a, b) => b.sales - a.sales)
-      .slice(0, 5);
+      .map(([productId, sales]) => {
+        const product = products.find(p => p.id === productId);
+        return product ? { product, sales } : null;
+      })
+      .filter(item => item !== null)
+      .sort((a, b) => b!.sales - a!.sales)
+      .slice(0, 5) as { product: Product; sales: number }[];
 
     setStats({ totalOrders, totalRevenue, avgOrderValue, topProducts });
-  }, [orders]);
+  }, [orders, products]);
 
-  const recentOrders = orders.slice(-10).reverse();
+  const recentOrders = orders.slice(0, 10);
 
   return (
     <div className="space-y-6 p-6">
@@ -64,7 +108,7 @@ const AdminDashboard = ({ orders }: AdminDashboardProps) => {
             <CardTitle className="text-lg">إجمالي المبيعات</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-barber-green">₪{stats.totalRevenue}</div>
+            <div className="text-2xl font-bold text-barber-green">₪{stats.totalRevenue.toFixed(2)}</div>
           </CardContent>
         </Card>
 

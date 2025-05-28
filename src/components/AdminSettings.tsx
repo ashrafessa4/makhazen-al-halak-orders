@@ -26,31 +26,31 @@ const AdminSettings = ({ onClose }: AdminSettingsProps) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-md">
-        <CardHeader>
+      <Card className="w-full max-w-md bg-white">
+        <CardHeader className="bg-white">
           <CardTitle className="text-center text-barber-dark">إعدادات الإدارة</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="bg-white">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="whatsapp">رقم الواتساب</Label>
+              <Label htmlFor="whatsapp" className="text-gray-700">رقم الواتساب</Label>
               <Input
                 id="whatsapp"
                 value={whatsappNumber}
                 onChange={(e) => setWhatsappNumber(e.target.value)}
-                className="border-2 border-gray-300 focus:border-barber-blue"
+                className="border-2 border-gray-300 focus:border-barber-blue bg-white text-gray-900"
                 placeholder="+972509617061"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">البريد الإلكتروني للإشعارات</Label>
+              <Label htmlFor="email" className="text-gray-700">البريد الإلكتروني للإشعارات</Label>
               <Input
                 id="email"
                 type="email"
                 value={notificationEmail}
                 onChange={(e) => setNotificationEmail(e.target.value)}
-                className="border-2 border-gray-300 focus:border-barber-blue"
+                className="border-2 border-gray-300 focus:border-barber-blue bg-white text-gray-900"
                 placeholder="admin@example.com"
               />
             </div>
@@ -58,7 +58,7 @@ const AdminSettings = ({ onClose }: AdminSettingsProps) => {
               <Button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-barber-blue hover:bg-barber-blue/90"
+                className="flex-1 bg-barber-blue hover:bg-barber-blue/90 text-white"
               >
                 {loading ? 'جاري الحفظ...' : 'حفظ الإعدادات'}
               </Button>
@@ -66,7 +66,7 @@ const AdminSettings = ({ onClose }: AdminSettingsProps) => {
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="flex-1"
+                className="flex-1 bg-white text-gray-700 border-gray-300"
               >
                 إلغاء
               </Button>

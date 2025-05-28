@@ -58,15 +58,23 @@ export const useProducts = () => {
 
   const updateProduct = async (id: string, productData: Partial<ProductFormData>) => {
     setLoading(true);
+    console.log('🔄 Updating product:', { id, productData });
+    
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('products')
         .update(productData)
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Update error:', error);
+        throw error;
+      }
       
-      await fetchProducts();
+      console.log('✅ Update successful:', data);
+      await fetchProducts(); // Refresh the products list
+      
       toast({
         title: "تم تحديث المنتج",
         description: "تم تحديث المنتج بنجاح",

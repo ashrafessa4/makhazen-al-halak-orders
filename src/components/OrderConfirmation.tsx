@@ -3,6 +3,7 @@ import { Order } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Phone } from 'lucide-react';
+import { useAdminConfig } from '@/hooks/useAdmin';
 
 interface OrderConfirmationProps {
   order: Order;
@@ -10,9 +11,12 @@ interface OrderConfirmationProps {
 }
 
 const OrderConfirmation = ({ order, onNewOrder }: OrderConfirmationProps) => {
+  const { config } = useAdminConfig();
+
   const handleWhatsAppContact = () => {
     const message = `مرحباً، أريد الاستفسار عن طلبي رقم ${order.orderNumber}`;
-    const phoneNumber = "+972123456789"; // Replace with your actual WhatsApp number
+    // Use configured admin WhatsApp number or fallback
+    const phoneNumber = config?.whatsapp_number || "+972509617061";
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
