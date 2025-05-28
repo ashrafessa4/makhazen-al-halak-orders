@@ -2,13 +2,25 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const resend = new Resend("re_GCDYUSn4_ETZZHbje1W7PNihYrkjnGU8y");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
+
+interface OrderItem {
+  product: {
+    id: string;
+    name: string;
+    price: number;
+    image: string;
+    category: string;
+    description: string;
+  };
+  quantity: number;
+}
 
 interface OrderEmailRequest {
   order: {
@@ -17,13 +29,7 @@ interface OrderEmailRequest {
     shopName: string;
     city: string;
     total: number;
-    items: Array<{
-      product: {
-        name: string;
-        price: number;
-      };
-      quantity: number;
-    }>;
+    items: OrderItem[];
     notes?: string;
     date: string;
   };
@@ -39,55 +45,123 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { order, adminEmail }: OrderEmailRequest = await req.json();
 
-    const itemsList = order.items.map(item => 
-      `• ${item.product.name} - الكمية: ${item.quantity} - السعر: ₪${item.product.price * item.quantity}`
-    ).join('\n');
+    console.log('Sending order email to:', adminEmail);
+    console.log('Order details:', order);
 
-    const emailContent = `
-      <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #1e40af; text-align: center;">طلب جديد - ${order.orderNumber}</h1>
-        
-        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h2 style="color: #1f2937; margin-bottom: 15px;">تفاصيل العميل:</h2>
-          <p><strong>الاسم:</strong> ${order.customerName}</p>
-          <p><strong>الصالون:</strong> ${order.shopName}</p>
-          <p><strong>المدينة:</strong> ${order.city}</p>
-        </div>
-
-        <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h2 style="color: #1f2937; margin-bottom: 15px;">المنتجات المطلوبة:</h2>
-          <div style="white-space: pre-line; line-height: 1.6;">${itemsList}</div>
-          <hr style="margin: 15px 0;">
-          <p style="font-size: 18px; font-weight: bold; color: #059669;">المجموع: ₪${order.total}</p>
-        </div>
-
-        ${order.notes ? `
-        <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h2 style="color: #1f2937; margin-bottom: 15px;">ملاحظات:</h2>
-          <p>${order.notes}</p>
-        </div>
-        ` : ''}
-
-        <div style="background: #e0e7ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <p><strong>تاريخ الطلب:</strong> ${new Date(order.date).toLocaleString('ar-EG')}</p>
-        </div>
-
-        <div style="text-align: center; margin-top: 30px;">
-          <p style="color: #6b7280;">متجر أدوات الحلاقة</p>
-        </div>
-      </div>
-    `;
+    const itemsHtml = order.items.map(item => `
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 12px; text-align: right;">${item.product.name}</td>
+        <td style="padding: 12px; text-align: center;">${item.quantity}</td>
+        <td style="padding: 12px; text-align: center;">₪${item.product.price}</td>
+        <td style="padding: 12px; text-align: center;">₪${(item.product.price * item.quantity).toFixed(2)}</td>
+      </tr>
+    `).join('');
 
     const emailResponse = await resend.emails.send({
-      from: "متجر أدوات الحلاقة <onboarding@resend.dev>",
+      from: "Makhazen Al-Halak <orders@resend.dev>",
       to: [adminEmail],
-      subject: `طلب جديد رقم ${order.orderNumber} من ${order.customerName}`,
-      html: emailContent,
+      subject: `طلب جديد رقم ${order.orderNumber} - ${order.customerName}`,
+      html: `
+        <!DOCTYPE html>
+        <html dir="rtl" lang="ar">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>طلب جديد</title>
+        </head>
+        <body style="font-family: 'Cairo', Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; direction: rtl;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden;">
+            
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #1e40af, #059669); color: white; padding: 30px 20px; text-align: center;">
+              <h1 style="margin: 0; font-size: 28px; font-weight: bold;">🆕 طلب جديد</h1>
+              <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">رقم الطلب: ${order.orderNumber}</p>
+            </div>
+
+            <!-- Customer Info -->
+            <div style="padding: 30px 20px;">
+              <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 22px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">معلومات العميل</h2>
+              
+              <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <div style="display: grid; gap: 15px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: bold; color: #374151;">👤 اسم العميل:</span>
+                    <span style="color: #1f2937;">${order.customerName}</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: bold; color: #374151;">🏪 اسم الصالون:</span>
+                    <span style="color: #1f2937;">${order.shopName}</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: bold; color: #374151;">📍 المدينة:</span>
+                    <span style="color: #1f2937;">${order.city}</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: bold; color: #374151;">📅 تاريخ الطلب:</span>
+                    <span style="color: #1f2937;">${new Date(order.date).toLocaleDateString('ar-EG')}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Products Table -->
+              <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 22px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">📦 المنتجات المطلوبة</h2>
+              
+              <div style="overflow-x: auto; margin-bottom: 30px;">
+                <table style="width: 100%; border-collapse: collapse; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                  <thead>
+                    <tr style="background: linear-gradient(135deg, #1e40af, #059669); color: white;">
+                      <th style="padding: 15px; text-align: right; font-weight: bold;">اسم المنتج</th>
+                      <th style="padding: 15px; text-align: center; font-weight: bold;">الكمية</th>
+                      <th style="padding: 15px; text-align: center; font-weight: bold;">السعر</th>
+                      <th style="padding: 15px; text-align: center; font-weight: bold;">المجموع</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${itemsHtml}
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Total -->
+              <div style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 30px;">
+                <h3 style="margin: 0; font-size: 24px; font-weight: bold;">💰 المبلغ الإجمالي: ₪${order.total.toFixed(2)}</h3>
+              </div>
+
+              ${order.notes ? `
+                <!-- Notes -->
+                <div style="background-color: #fef3c7; border-right: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                  <h3 style="color: #92400e; margin: 0 0 10px 0; font-size: 18px;">📝 ملاحظات العميل:</h3>
+                  <p style="color: #92400e; margin: 0; font-size: 16px; line-height: 1.6;">${order.notes}</p>
+                </div>
+              ` : ''}
+
+              <!-- Action Required -->
+              <div style="background-color: #dbeafe; border-right: 4px solid #3b82f6; padding: 20px; border-radius: 8px;">
+                <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 18px;">⚡ الإجراءات المطلوبة:</h3>
+                <ul style="color: #1e40af; margin: 0; padding-right: 20px; line-height: 1.8;">
+                  <li>التواصل مع العميل لتأكيد الطلب</li>
+                  <li>تحضير المنتجات المطلوبة</li>
+                  <li>تنسيق عملية التوصيل</li>
+                  <li>تحصيل المبلغ عند التسليم</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                تم إرسال هذا البريد الإلكتروني تلقائياً من نظام متجر أدوات الحلاقة
+              </p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
     });
 
-    console.log("Order email sent successfully:", emailResponse);
+    console.log("Email sent successfully:", emailResponse);
 
-    return new Response(JSON.stringify(emailResponse), {
+    return new Response(JSON.stringify({ success: true, emailResponse }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

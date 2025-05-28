@@ -6,7 +6,23 @@ const isIOS = () => {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
 };
 
+// Function to convert Arabic numbers to English numbers
+const convertToEnglishNumbers = (str: string) => {
+  const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+  
+  let result = str;
+  arabicNumbers.forEach((arabic, index) => {
+    result = result.replace(new RegExp(arabic, 'g'), englishNumbers[index]);
+  });
+  
+  return result;
+};
+
 export const sendWhatsAppNotification = (order: Order, phoneNumber?: string) => {
+  // Format date with English numbers
+  const dateString = convertToEnglishNumbers(order.date.toLocaleString('ar-EG'));
+  
   const message = `
 🆕 طلب جديد - ${order.orderNumber}
 
@@ -22,7 +38,7 @@ ${order.items.map(item =>
 
 ${order.notes ? `📝 ملاحظات: ${order.notes}` : ''}
 
-📅 تاريخ الطلب: ${order.date.toLocaleString('ar-EG')}
+📅 تاريخ الطلب: ${dateString}
   `.trim();
 
   // Use provided phone number or default
@@ -31,36 +47,29 @@ ${order.notes ? `📝 ملاحظات: ${order.notes}` : ''}
   // For iOS, use different WhatsApp URL format
   let whatsappUrl;
   if (isIOS()) {
-    // iOS specific WhatsApp URL
+    // iOS specific WhatsApp URL - try app scheme first
     whatsappUrl = `whatsapp://send?phone=${whatsappNumber}&text=${encodeURIComponent(message)}`;
+    
+    console.log('iOS detected - opening WhatsApp app directly');
+    console.log('WhatsApp URL:', whatsappUrl);
+    
+    // For iOS, open the URL directly which should work better
+    window.location.href = whatsappUrl;
+    
+    // Fallback to web version after a short delay if app doesn't open
+    setTimeout(() => {
+      if (document.hasFocus()) {
+        console.log('App might not have opened, trying web fallback');
+        const webUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+        window.open(webUrl, '_blank');
+      }
+    }, 2000);
   } else {
     // Standard web WhatsApp URL for Android and other platforms
     whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-  }
-  
-  console.log('Platform detected:', isIOS() ? 'iOS' : 'Other');
-  console.log('WhatsApp URL:', whatsappUrl);
-  
-  // Try to open WhatsApp
-  try {
-    if (isIOS()) {
-      // For iOS, try the app first, then fallback to web
-      window.location.href = whatsappUrl;
-      
-      // Fallback to web version after a short delay if app doesn't open
-      setTimeout(() => {
-        const webUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-        window.open(webUrl, '_blank');
-      }, 1000);
-    } else {
-      // For other platforms, open in new tab
-      window.open(whatsappUrl, '_blank');
-    }
-  } catch (error) {
-    console.error('Error opening WhatsApp:', error);
-    // Fallback to web version
-    const webUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-    window.open(webUrl, '_blank');
+    console.log('Android/Other platform detected');
+    console.log('WhatsApp URL:', whatsappUrl);
+    window.open(whatsappUrl, '_blank');
   }
   
   console.log('WhatsApp notification sent for order:', order.orderNumber);

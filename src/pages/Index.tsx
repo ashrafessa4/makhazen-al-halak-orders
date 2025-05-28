@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useCart } from '@/hooks/useCart';
 import { useProducts } from '@/hooks/useProducts';
@@ -141,45 +142,47 @@ const Index = () => {
   };
 
   const renderStoreView = () => (
-    <div className="min-h-screen relative">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-green-50"></div>
-      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1585747733461-0524ba8de5ad?w=1200&h=800&fit=crop')] bg-cover bg-center opacity-5 blur-sm"></div>
+    <div className="min-h-screen relative pb-24 lg:pb-8">
+      {/* Enhanced Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-green-50"></div>
+      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1585747733461-0524ba8de5ad?w=1200&h=800&fit=crop')] bg-cover bg-center opacity-3 blur-sm"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent"></div>
       
       <div className="container mx-auto px-4 py-6 sm:py-8 relative z-10">
-        {/* Header */}
-        <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-barber-dark mb-2 drop-shadow-lg">
+        {/* Enhanced Header */}
+        <div className="text-center mb-8 sm:mb-10">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-barber-dark mb-3 drop-shadow-2xl animate-fade-in">
             متجر أدوات الحلاقة
           </h1>
-          <p className="text-gray-600 text-base sm:text-lg drop-shadow-sm">
+          <div className="w-24 h-1 bg-gradient-to-r from-barber-blue to-barber-green mx-auto mb-4 rounded-full"></div>
+          <p className="text-gray-700 text-lg sm:text-xl drop-shadow-lg font-medium">
             كل ما تحتاجه لصالونك في مكان واحد
           </p>
         </div>
 
-        {/* Admin Controls */}
-        <div className="flex justify-center items-center gap-2 mb-6 flex-wrap">
+        {/* Enhanced Admin Controls */}
+        <div className="flex justify-center items-center gap-3 mb-8 flex-wrap">
           {!isAdmin ? (
             <Button
               onClick={() => setShowAdminLogin(true)}
               variant="outline"
-              className="bg-barber-gold text-white hover:bg-barber-gold/90 border-barber-gold"
+              className="bg-gradient-to-r from-barber-gold to-barber-gold/80 text-white hover:from-barber-gold/90 hover:to-barber-gold/70 border-none shadow-lg transform hover:scale-105 transition-all duration-200"
             >
               <UserCheck className="ml-2 h-4 w-4" />
               تسجيل دخول الإدارة
             </Button>
           ) : (
-            <div className="flex gap-2 flex-wrap justify-center">
+            <div className="flex gap-3 flex-wrap justify-center">
               <Button
                 onClick={() => setCurrentView('admin')}
                 variant="outline"
-                className="bg-barber-blue text-white hover:bg-barber-blue/90"
+                className="bg-gradient-to-r from-barber-blue to-barber-blue/80 text-white hover:from-barber-blue/90 hover:to-barber-blue/70 border-none shadow-lg transform hover:scale-105 transition-all duration-200"
               >
                 لوحة التحكم
               </Button>
               <Button
                 onClick={() => setShowAddProduct(true)}
-                className="bg-barber-green hover:bg-barber-green/90"
+                className="bg-gradient-to-r from-barber-green to-barber-green/80 hover:from-barber-green/90 hover:to-barber-green/70 shadow-lg transform hover:scale-105 transition-all duration-200"
               >
                 <Plus className="ml-2 h-4 w-4" />
                 إضافة منتج
@@ -187,6 +190,7 @@ const Index = () => {
               <Button
                 onClick={() => setShowAdminSettings(true)}
                 variant="outline"
+                className="bg-white/90 text-barber-dark border-2 border-barber-blue hover:bg-barber-blue hover:text-white shadow-lg transform hover:scale-105 transition-all duration-200"
               >
                 <Settings className="ml-2 h-4 w-4" />
                 الإعدادات
@@ -194,7 +198,7 @@ const Index = () => {
               <Button
                 onClick={adminLogout}
                 variant="outline"
-                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                className="bg-white/90 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white shadow-lg transform hover:scale-105 transition-all duration-200"
               >
                 <LogOut className="ml-2 h-4 w-4" />
                 تسجيل الخروج
@@ -203,17 +207,17 @@ const Index = () => {
           )}
         </div>
 
-        {/* Category Filter */}
-        <div className="flex justify-center mb-6 sm:mb-8">
-          <div className="flex flex-wrap gap-2 justify-center">
+        {/* Enhanced Category Filter */}
+        <div className="flex justify-center mb-8 sm:mb-10">
+          <div className="flex flex-wrap gap-3 justify-center bg-white/80 backdrop-blur-sm p-4 rounded-2xl shadow-lg">
             {categories.map((category) => (
               <Badge
                 key={category}
                 variant={selectedCategory === category ? "default" : "outline"}
-                className={`cursor-pointer px-3 sm:px-4 py-2 text-sm sm:text-base ${
+                className={`cursor-pointer px-4 sm:px-6 py-3 text-sm sm:text-base font-semibold transition-all duration-200 transform hover:scale-105 ${
                   selectedCategory === category
-                    ? 'bg-barber-blue hover:bg-barber-blue/90 text-white'
-                    : 'hover:bg-gray-100'
+                    ? 'bg-gradient-to-r from-barber-blue to-barber-green hover:from-barber-blue/90 hover:to-barber-green/90 text-white shadow-lg border-none'
+                    : 'bg-white/90 text-barber-dark border-2 border-barber-blue/30 hover:bg-barber-blue/10 hover:border-barber-blue shadow-md'
                 }`}
                 onClick={() => setSelectedCategory(category)}
               >
@@ -224,15 +228,20 @@ const Index = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
-          {/* Products Grid */}
+          {/* Enhanced Products Grid */}
           <div className="lg:col-span-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-              {filteredProducts.map((product) => (
-                <ProductCard
+              {filteredProducts.map((product, index) => (
+                <div
                   key={product.id}
-                  product={product}
-                  onAddToCart={cart.addToCart}
-                />
+                  className="animate-fade-in"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <ProductCard
+                    product={product}
+                    onAddToCart={cart.addToCart}
+                  />
+                </div>
               ))}
             </div>
           </div>

@@ -25,40 +25,42 @@ const AdminSettings = ({ onClose }: AdminSettingsProps) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-md bg-white">
-        <CardHeader className="bg-white">
-          <CardTitle className="text-center text-gray-900">إعدادات الإدارة</CardTitle>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+      <Card className="w-full max-w-md bg-white shadow-2xl animate-scale-in">
+        <CardHeader className="bg-gradient-to-r from-barber-blue to-barber-green text-white rounded-t-lg">
+          <CardTitle className="text-center text-white">إعدادات الإدارة</CardTitle>
         </CardHeader>
-        <CardContent className="bg-white space-y-4 p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <CardContent className="bg-white space-y-6 p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="whatsapp" className="text-gray-900 font-medium">رقم الواتساب</Label>
+              <Label htmlFor="whatsapp" className="text-gray-800 font-semibold">رقم الواتساب</Label>
               <Input
                 id="whatsapp"
                 value={whatsappNumber}
                 onChange={(e) => setWhatsappNumber(e.target.value)}
-                className="border-2 border-gray-300 focus:border-barber-blue bg-white text-gray-900 placeholder:text-gray-400"
-                placeholder="+972509617061"
+                className="border-2 border-gray-300 focus:border-barber-blue bg-white text-gray-900 placeholder:text-gray-500 h-12 text-lg transition-all duration-200 hover:border-gray-400"
+                placeholder={config?.whatsapp_number || "+972509617061"}
+                dir="rtl"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-900 font-medium">البريد الإلكتروني للإشعارات</Label>
+              <Label htmlFor="email" className="text-gray-800 font-semibold">البريد الإلكتروني للإشعارات</Label>
               <Input
                 id="email"
                 type="email"
                 value={notificationEmail}
                 onChange={(e) => setNotificationEmail(e.target.value)}
-                className="border-2 border-gray-300 focus:border-barber-blue bg-white text-gray-900 placeholder:text-gray-400"
-                placeholder="admin@example.com"
+                className="border-2 border-gray-300 focus:border-barber-blue bg-white text-gray-900 placeholder:text-gray-500 h-12 text-lg transition-all duration-200 hover:border-gray-400"
+                placeholder={config?.notification_email || "admin@example.com"}
+                dir="rtl"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-3 pt-4">
               <Button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-barber-blue hover:bg-barber-blue/90 text-white"
+                className="flex-1 bg-gradient-to-r from-barber-blue to-barber-green hover:from-barber-blue/90 hover:to-barber-green/90 text-white h-12 text-lg font-semibold transition-all duration-200 transform hover:scale-105"
               >
                 {loading ? 'جاري الحفظ...' : 'حفظ الإعدادات'}
               </Button>
@@ -66,7 +68,7 @@ const AdminSettings = ({ onClose }: AdminSettingsProps) => {
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="flex-1 bg-white text-gray-900 border-gray-300 hover:bg-gray-50"
+                className="flex-1 bg-white text-gray-700 border-2 border-gray-300 hover:bg-gray-50 h-12 text-lg font-semibold transition-all duration-200"
               >
                 إلغاء
               </Button>
