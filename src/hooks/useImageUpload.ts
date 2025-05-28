@@ -35,8 +35,7 @@ export const useImageUpload = () => {
       if (error) {
         console.error('❌ Upload error details:', {
           name: error.name,
-          message: error.message,
-          cause: error.cause
+          message: error.message
         });
         throw error;
       }
