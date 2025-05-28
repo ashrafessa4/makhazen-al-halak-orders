@@ -12,9 +12,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useProducts } from '@/hooks/useProducts';
 import { toast } from 'sonner';
 import { Check, X, Clock, RotateCcw, ShoppingCart, DollarSign, TrendingUp, Package, Calendar, MapPin, User, Store } from 'lucide-react';
+
 interface AdminDashboardProps {
   orders: Order[];
 }
+
 const AdminDashboard = ({
   orders: propOrders
 }: AdminDashboardProps) => {
@@ -185,16 +187,16 @@ const AdminDashboard = ({
   return <div className="space-y-6 p-4 bg-slate-50 min-h-screen">
       
       
-      {/* Compact Stats Grid */}
+      {/* Compact Stats Grid - Rearranged */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg">
+        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-lg">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-xs font-medium">إجمالي الطلبات</p>
-                <p className="text-2xl font-bold">{stats.totalOrders}</p>
+                <p className="text-purple-100 text-xs font-medium">متوسط الطلب</p>
+                <p className="text-2xl font-bold">₪{stats.avgOrderValue.toFixed(0)}</p>
               </div>
-              <ShoppingCart className="h-8 w-8 text-blue-200" />
+              <TrendingUp className="h-8 w-8 text-purple-200" />
             </div>
           </CardContent>
         </Card>
@@ -211,14 +213,14 @@ const AdminDashboard = ({
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-lg">
+        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100 text-xs font-medium">متوسط الطلب</p>
-                <p className="text-2xl font-bold">₪{stats.avgOrderValue.toFixed(0)}</p>
+                <p className="text-blue-100 text-xs font-medium">إجمالي الطلبات</p>
+                <p className="text-2xl font-bold">{stats.totalOrders}</p>
               </div>
-              <TrendingUp className="h-8 w-8 text-purple-200" />
+              <ShoppingCart className="h-8 w-8 text-blue-200" />
             </div>
           </CardContent>
         </Card>
@@ -247,14 +249,14 @@ const AdminDashboard = ({
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-slate-500 to-slate-600 text-white border-0 shadow-lg">
+        <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white border-0 shadow-lg">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-100 text-xs font-medium">اليوم</p>
-                <p className="text-2xl font-bold">{todayOrders.length}</p>
+                <p className="text-red-100 text-xs font-medium">ملغية</p>
+                <p className="text-2xl font-bold">{stats.cancelledOrders}</p>
               </div>
-              <Calendar className="h-8 w-8 text-slate-200" />
+              <X className="h-8 w-8 text-red-200" />
             </div>
           </CardContent>
         </Card>
@@ -262,9 +264,9 @@ const AdminDashboard = ({
 
       <Tabs defaultValue="recent" className="w-full">
         <TabsList className="grid w-full grid-cols-3 bg-white border shadow-sm">
-          <TabsTrigger value="recent" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white font-medium">آخر الطلبات</TabsTrigger>
-          <TabsTrigger value="products" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white font-medium">الأكثر مبيعاً</TabsTrigger>
-          <TabsTrigger value="all" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white font-medium">جميع الطلبات</TabsTrigger>
+          <TabsTrigger value="recent" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=inactive]:text-slate-700 data-[state=inactive]:bg-white font-medium">آخر الطلبات</TabsTrigger>
+          <TabsTrigger value="products" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=inactive]:text-slate-700 data-[state=inactive]:bg-white font-medium">الأكثر مبيعاً</TabsTrigger>
+          <TabsTrigger value="all" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=inactive]:text-slate-700 data-[state=inactive]:bg-white font-medium">جميع الطلبات</TabsTrigger>
         </TabsList>
 
         <TabsContent value="recent" className="space-y-4 mt-6">
@@ -474,4 +476,5 @@ const AdminDashboard = ({
       </Dialog>
     </div>;
 };
+
 export default AdminDashboard;
