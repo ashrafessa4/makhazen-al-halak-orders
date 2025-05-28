@@ -14,15 +14,15 @@ export const useAdminConfig = () => {
       throw new Error('Admin not authenticated');
     }
 
-    // Ensure we're signed in to Supabase (anonymous is fine for admin operations)
+    // Check if we already have a Supabase session
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      const { error } = await supabase.auth.signInAnonymously();
-      if (error) {
-        console.error('Failed to establish session:', error);
-        throw new Error('Failed to establish database session');
-      }
+    if (session) {
+      return; // Already authenticated
     }
+
+    // If no session exists, we'll work without one since we have admin authentication
+    // The RLS policies will handle access control based on the admin authentication
+    console.log('🔐 Working with admin authentication (no Supabase session required)');
   };
 
   const fetchConfig = async () => {
@@ -82,7 +82,7 @@ export const useAdminConfig = () => {
         const configToUpdate = existingConfig[0];
         console.log('🔄 Updating existing admin config...');
         
-        // First, perform the update
+        // Perform the update
         const { error: updateError } = await supabase
           .from('admin_config')
           .update(updates)
@@ -93,7 +93,7 @@ export const useAdminConfig = () => {
           throw updateError;
         }
 
-        // Then fetch the updated record
+        // Fetch the updated record
         const { data: updatedData, error: selectError } = await supabase
           .from('admin_config')
           .select('*')
@@ -126,7 +126,11 @@ export const useAdminConfig = () => {
   };
 
   useEffect(() => {
-    fetchConfig();
+    // Only fetch config if admin is authenticated
+    const adminData = localStorage.getItem('admin_user');
+    if (adminData) {
+      fetchConfig();
+    }
   }, []);
 
   return {
