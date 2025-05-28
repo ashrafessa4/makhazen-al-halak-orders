@@ -37,11 +37,26 @@ const AdminSettings = ({ onClose }: AdminSettingsProps) => {
       return;
     }
 
-    await updateConfig({
-      whatsapp_number: whatsappNumber.trim() || null,
-      notification_email: notificationEmail.trim() || null,
-    });
-    onClose();
+    try {
+      await updateConfig({
+        whatsapp_number: whatsappNumber.trim() || null,
+        notification_email: notificationEmail.trim() || null,
+      });
+      
+      toast({
+        title: "تم الحفظ بنجاح!",
+        description: "تم حفظ إعدادات الإدارة بنجاح",
+      });
+      
+      onClose();
+    } catch (error) {
+      console.error('Error updating admin config:', error);
+      toast({
+        title: "خطأ في الحفظ",
+        description: "حدث خطأ أثناء حفظ الإعدادات، يرجى المحاولة مرة أخرى",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
