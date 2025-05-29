@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Order, Product } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,37 +52,37 @@ const AdminDashboard = ({
   const [pendingStatus, setPendingStatus] = useState<'pending' | 'completed' | 'cancelled' | null>(null);
 
   // Fetch orders from database
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const {
-          data,
-          error
-        } = await supabase.from('orders').select('*').order('created_at', {
-          ascending: false
-        });
-        if (error) {
-          console.error('Error fetching orders:', error);
-          return;
-        }
-        const transformedOrders: Order[] = data.map(order => ({
-          id: order.id,
-          orderNumber: order.order_number,
-          customerName: order.customer_name,
-          shopName: order.shop_name,
-          city: order.city,
-          notes: order.notes || '',
-          adminNotes: order.admin_notes || '',
-          items: order.items as any,
-          total: Number(order.total),
-          date: new Date(order.created_at),
-          status: order.status as 'pending' | 'processing' | 'completed' | 'cancelled'
-        }));
-        setOrders(transformedOrders);
-      } catch (error) {
-        console.error('Error fetching orders:', error);
+  const fetchOrders = async () => {
+    try {
+      const {
+        data,
+        error
+      } = await supabase.from('orders').select('*').order('created_at', {
+        ascending: false
+      });
+      if (error) {
+        return;
       }
-    };
+      const transformedOrders: Order[] = data.map(order => ({
+        id: order.id,
+        orderNumber: order.order_number,
+        customerName: order.customer_name,
+        shopName: order.shop_name,
+        city: order.city,
+        notes: order.notes || '',
+        adminNotes: order.admin_notes || '',
+        items: order.items as any,
+        total: Number(order.total),
+        date: new Date(order.created_at),
+        status: order.status as 'pending' | 'processing' | 'completed' | 'cancelled'
+      }));
+      setOrders(transformedOrders);
+    } catch (error) {
+      // Silent error handling for production
+    }
+  };
+
+  useEffect(() => {
     fetchOrders();
   }, []);
 
@@ -151,8 +150,6 @@ const AdminDashboard = ({
 
   const handleStatusUpdate = async (orderId: string, newStatus: 'pending' | 'completed' | 'cancelled', note: string = '') => {
     try {
-      console.log('🔄 Updating order status:', { orderId, newStatus, note });
-      
       const {
         error
       } = await supabase.from('orders').update({
@@ -161,12 +158,9 @@ const AdminDashboard = ({
       }).eq('id', orderId);
       
       if (error) {
-        console.error('❌ Error updating order status:', error);
         toast.error('حدث خطأ أثناء تحديث حالة الطلب');
         return;
       }
-      
-      console.log('✅ Order status updated successfully');
       
       // Update local state
       setOrders(prev => prev.map(order => order.id === orderId ? {
@@ -175,6 +169,9 @@ const AdminDashboard = ({
         adminNotes: note
       } : order));
       
+      // Refresh orders from database to ensure consistency
+      await fetchOrders();
+      
       const statusText = newStatus === 'completed' ? 'تأكيد' : newStatus === 'cancelled' ? 'إلغاء' : 'إرجاع إلى الانتظار';
       toast.success(`تم ${statusText} الطلب بنجاح`);
       setIsDialogOpen(false);
@@ -182,7 +179,6 @@ const AdminDashboard = ({
       setStatusNote('');
       setPendingStatus(null);
     } catch (error) {
-      console.error('❌ Error updating order status:', error);
       toast.error('حدث خطأ أثناء تحديث حالة الطلب');
     }
   };
@@ -607,7 +603,7 @@ const AdminDashboard = ({
         </TabsContent>
       </Tabs>
 
-      {/* Cancel Order Dialog */}
+      {/* Cancel Order Dialog - Fixed to prevent auto-keyboard popup */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -625,7 +621,8 @@ const AdminDashboard = ({
               placeholder="أضف ملاحظة حول سبب الإلغاء..." 
               value={statusNote} 
               onChange={e => setStatusNote(e.target.value)} 
-              className="resize-none h-20 text-sm border-slate-200 focus:border-blue-500" 
+              className="resize-none h-20 text-sm border-slate-200 focus:border-blue-500"
+              autoFocus={false}
             />
           </div>
           <DialogFooter className="gap-2">

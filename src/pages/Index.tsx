@@ -99,17 +99,8 @@ const Index = () => {
       // Send WhatsApp notification
       sendWhatsAppNotification(order, config?.whatsapp_number || '+972509617061');
       
-      // Send email notification with detailed logging
+      // Send email notification
       if (config?.notification_email) {
-        console.log('📧 Starting email sending process...');
-        console.log('📧 Admin email:', config.notification_email);
-        console.log('📧 Order data:', {
-          orderNumber: order.orderNumber,
-          customerName: order.customerName,
-          total: order.total,
-          itemsCount: order.items.length
-        });
-
         try {
           const emailPayload = {
             order: {
@@ -125,35 +116,27 @@ const Index = () => {
             adminEmail: config.notification_email
           };
 
-          console.log('📧 Calling Supabase function with payload:', emailPayload);
-
           const emailResponse = await supabase.functions.invoke('send-order-email', {
             body: emailPayload
           });
 
-          console.log('📧 Email function response:', emailResponse);
-
           if (emailResponse.error) {
-            console.error('📧 Email sending error:', emailResponse.error);
             toast({
               description: "تم إرسال الطلب بنجاح ولكن فشل في إرسال البريد الإلكتروني",
               variant: "destructive",
             });
           } else {
-            console.log('📧 Email sent successfully:', emailResponse.data);
             toast({
               description: "تم إرسال الطلب والبريد الإلكتروني بنجاح!",
             });
           }
         } catch (emailError) {
-          console.error('📧 Email sending failed with exception:', emailError);
           toast({
             description: "تم إرسال الطلب بنجاح ولكن فشل في إرسال البريد الإلكتروني",
             variant: "destructive",
           });
         }
       } else {
-        console.log('📧 No admin email configured, skipping email notification');
         toast({
           description: "تم إرسال الطلب بنجاح!",
         });
@@ -166,7 +149,6 @@ const Index = () => {
         description: `تم إرسال الطلب برقم ${orderNumber}`,
       });
     } catch (error) {
-      console.error('Error saving order:', error);
       toast({
         description: "حدث خطأ أثناء حفظ الطلب، يرجى المحاولة مرة أخرى",
         variant: "destructive",
