@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useProducts } from '@/hooks/useProducts';
 import { toast } from 'sonner';
-import { Check, X, Clock, RotateCcw, ShoppingCart, DollarSign, TrendingUp, Package, BarChart3, Search, Eye, MapPin, User, Store, Calendar, CreditCard } from 'lucide-react';
+import { Check, X, Clock, RotateCcw, ShoppingCart, DollarSign, TrendingUp, Package, BarChart3, Search, Eye, MapPin, User, Store, Calendar, CreditCard, FileText, Shield } from 'lucide-react';
 
 interface AdminDashboardProps {
   orders: Order[];
@@ -704,11 +704,24 @@ const AdminDashboard = ({
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="p-1 bg-amber-100 rounded">
-                      <Eye className="h-4 w-4 text-amber-600" />
+                      <FileText className="h-4 w-4 text-amber-600" />
                     </div>
                     <h3 className="text-lg font-semibold text-amber-800">Customer Notes</h3>
                   </div>
                   <p className="text-amber-700 bg-white p-4 rounded-lg shadow-sm italic">"{orderDetailsData.notes}"</p>
+                </div>
+              )}
+
+              {/* Admin Notes */}
+              {orderDetailsData.adminNotes && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-1 bg-blue-100 rounded">
+                      <Shield className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-blue-800">Admin Notes</h3>
+                  </div>
+                  <p className="text-blue-700 bg-white p-4 rounded-lg shadow-sm italic">"{orderDetailsData.adminNotes}"</p>
                 </div>
               )}
 

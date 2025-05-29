@@ -64,7 +64,8 @@ const Index = () => {
 
   const handleOrderSubmit = async (formData: OrderFormData) => {
     try {
-      const orderNumber = generateOrderNumber();
+      // Generate unique 5-digit order number
+      const orderNumber = await generateOrderNumber();
       const order: Order = {
         id: Date.now().toString(),
         orderNumber,

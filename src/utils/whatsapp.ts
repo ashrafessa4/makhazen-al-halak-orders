@@ -1,82 +1,61 @@
 
 import { Order } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
 
-// Detect if the user is on iOS
-const isIOS = () => {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-};
-
-// Function to convert Arabic numbers to English numbers
-const convertToEnglishNumbers = (str: string) => {
-  const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-  const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+export const generateOrderNumber = async (): Promise<string> => {
+  let orderNumber: string;
+  let isUnique = false;
   
-  let result = str;
-  arabicNumbers.forEach((arabic, index) => {
-    result = result.replace(new RegExp(arabic, 'g'), englishNumbers[index]);
-  });
-  
-  return result;
-};
-
-export const sendWhatsAppNotification = (order: Order, phoneNumber?: string) => {
-  // Format date with English numbers
-  const dateString = convertToEnglishNumbers(order.date.toLocaleString('ar-EG'));
-  
-  const message = `
-🆕 طلب جديد - ${order.orderNumber}
-
-👤 العميل: ${order.customerName}
-🏪 الصالون: ${order.shopName}
-📍 المدينة: ${order.city}
-💰 المبلغ: ₪${order.total}
-
-📦 المنتجات:
-${order.items.map(item => 
-  `• ${item.product.name} - الكمية: ${item.quantity} - السعر: ₪${item.product.price * item.quantity}`
-).join('\n')}
-
-${order.notes ? `📝 ملاحظات: ${order.notes}` : ''}
-
-📅 تاريخ الطلب: ${dateString}
-  `.trim();
-
-  // Use provided phone number or default
-  const whatsappNumber = phoneNumber || "+972509617061";
-  
-  // For iOS, use different WhatsApp URL format
-  let whatsappUrl;
-  if (isIOS()) {
-    // iOS specific WhatsApp URL - try app scheme first
-    whatsappUrl = `whatsapp://send?phone=${whatsappNumber}&text=${encodeURIComponent(message)}`;
+  while (!isUnique) {
+    // Generate 5-digit number (10000-99999)
+    const randomNum = Math.floor(Math.random() * 90000) + 10000;
+    orderNumber = randomNum.toString();
     
-    console.log('iOS detected - opening WhatsApp app directly');
-    console.log('WhatsApp URL:', whatsappUrl);
+    // Check if this order number already exists
+    const { data: existingOrder, error } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('order_number', orderNumber)
+      .single();
     
-    // For iOS, open the URL directly which should work better
-    window.location.href = whatsappUrl;
-    
-    // Fallback to web version after a short delay if app doesn't open
-    setTimeout(() => {
-      if (document.hasFocus()) {
-        console.log('App might not have opened, trying web fallback');
-        const webUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-        window.open(webUrl, '_blank');
-      }
-    }, 2000);
-  } else {
-    // Standard web WhatsApp URL for Android and other platforms
-    whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-    console.log('Android/Other platform detected');
-    console.log('WhatsApp URL:', whatsappUrl);
-    window.open(whatsappUrl, '_blank');
+    if (error && error.code === 'PGRST116') {
+      // No existing order found, this number is unique
+      isUnique = true;
+    } else if (error) {
+      console.error('Error checking order number uniqueness:', error);
+      // If there's an error, generate a new number and try again
+      continue;
+    } else {
+      // Order number exists, generate a new one
+      continue;
+    }
   }
   
-  console.log('WhatsApp notification sent for order:', order.orderNumber);
-  console.log('Message:', message);
-  console.log('Phone number:', whatsappNumber);
+  return orderNumber!;
 };
 
-export const generateOrderNumber = (): string => {
-  return Math.floor(1000 + Math.random() * 9000).toString();
+export const sendWhatsAppNotification = (order: Order, phoneNumber: string) => {
+  const itemsList = order.items
+    .map(item => `${item.product.name} (x${item.quantity}) - ₪${item.product.price * item.quantity}`)
+    .join('\n');
+
+  const message = `🛒 *طلب جديد رقم ${order.orderNumber}*
+
+👤 *العميل:* ${order.customerName}
+🏪 *المتجر:* ${order.shopName}
+📍 *المدينة:* ${order.city}
+
+📦 *المنتجات:*
+${itemsList}
+
+💰 *المبلغ الإجمالي:* ₪${order.total}
+
+📝 *ملاحظات:* ${order.notes || 'لا توجد ملاحظات'}
+
+📅 *التاريخ:* ${order.date.toLocaleDateString('ar-SA')}`;
+
+  const encodedMessage = encodeURIComponent(message);
+  const whatsappUrl = `https://wa.me/${phoneNumber.replace(/[^0-9]/g, '')}?text=${encodedMessage}`;
+  
+  window.open(whatsappUrl, '_blank');
 };
