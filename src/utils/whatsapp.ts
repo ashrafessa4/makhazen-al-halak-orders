@@ -46,19 +46,20 @@ export const sendWhatsAppNotification = (order: Order, phoneNumber: string) => {
   }).format(order.date);
 
   const message = `🛒 *طلب جديد رقم ${order.orderNumber}*
+  📅 *التاريخ:* ${formattedDate}
 
 👤 *العميل:* ${order.customerName}
 🏪 *المتجر:* ${order.shopName}
 📍 *المدينة:* ${order.city}
+📝 *ملاحظات العميل:* ${order.notes || 'لا توجد ملاحظات'}
 
 📦 *المنتجات المطلوبة:*
 ${itemsList}
 
 💰 *المبلغ الإجمالي:* ₪${order.total}
 
-📝 *ملاحظات العميل:* ${order.notes || 'لا توجد ملاحظات'}
-
-📅 *التاريخ والوقت:* ${formattedDate}`;
+`
+;
 
   const encodedMessage = encodeURIComponent(message);
   const whatsappUrl = `https://wa.me/${phoneNumber.replace(/[^0-9]/g, '')}?text=${encodedMessage}`;
