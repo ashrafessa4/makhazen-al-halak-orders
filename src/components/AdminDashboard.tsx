@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Order, Product } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useProducts } from '@/hooks/useProducts';
 import { toast } from 'sonner';
-import { Check, X, Clock, RotateCcw, ShoppingCart, DollarSign, TrendingUp, Package, BarChart3, Search, Eye, MapPin, User, Store, Calendar, CreditCard, FileText, Shield } from 'lucide-react';
+import { Check, X, Clock, RotateCcw, ShoppingCart, DollarSign, TrendingUp, Package, Search, Eye, MapPin, User, Store, Calendar, CreditCard, FileText, Shield } from 'lucide-react';
 
 interface AdminDashboardProps {
   orders: Order[];
@@ -150,6 +151,8 @@ const AdminDashboard = ({
 
   const handleStatusUpdate = async (orderId: string, newStatus: 'pending' | 'completed' | 'cancelled', note: string = '') => {
     try {
+      console.log('🔄 Updating order status:', { orderId, newStatus, note });
+      
       const {
         error
       } = await supabase.from('orders').update({
@@ -158,11 +161,14 @@ const AdminDashboard = ({
       }).eq('id', orderId);
       
       if (error) {
-        console.error('Error updating order status:', error);
+        console.error('❌ Error updating order status:', error);
         toast.error('حدث خطأ أثناء تحديث حالة الطلب');
         return;
       }
       
+      console.log('✅ Order status updated successfully');
+      
+      // Update local state
       setOrders(prev => prev.map(order => order.id === orderId ? {
         ...order,
         status: newStatus,
@@ -176,7 +182,7 @@ const AdminDashboard = ({
       setStatusNote('');
       setPendingStatus(null);
     } catch (error) {
-      console.error('Error updating order status:', error);
+      console.error('❌ Error updating order status:', error);
       toast.error('حدث خطأ أثناء تحديث حالة الطلب');
     }
   };
@@ -233,7 +239,7 @@ const AdminDashboard = ({
     order.city.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  return <div className="space-y-6 p-4 bg-slate-50 min-h-screen">
+  return <div className="space-y-6 p-2 sm:p-4 bg-slate-50 min-h-screen">
       {/* Compact Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg">
@@ -368,23 +374,29 @@ const AdminDashboard = ({
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-2 w-20">رقم الطلب</TableHead>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-24">العميل</TableHead>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-24">المتجر</TableHead>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-20">المدينة</TableHead>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-20">المبلغ</TableHead>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-20">إجراءات</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2 w-16">رقم الطلب</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-20">العميل</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-20">المتجر</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-16">المدينة</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-16">المبلغ</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-16">إجراءات</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {pendingOrders.map(order => (
-                        <TableRow key={order.id} className="hover:bg-slate-50 h-8">
+                        <TableRow key={order.id} className="hover:bg-slate-50 h-12">
                           <TableCell className="font-mono text-xs font-medium text-blue-600 px-2 cursor-pointer hover:underline py-1" onClick={() => openOrderDetails(order)}>
                             #{order.orderNumber}
                           </TableCell>
-                          <TableCell className="font-medium text-xs text-slate-800 px-1 py-1 truncate max-w-24">{order.customerName}</TableCell>
-                          <TableCell className="text-xs text-slate-600 px-1 py-1 truncate max-w-24">{order.shopName}</TableCell>
-                          <TableCell className="text-xs text-slate-600 px-1 py-1 truncate max-w-20">{order.city}</TableCell>
+                          <TableCell className="font-medium text-xs text-slate-800 px-1 py-1 max-w-20">
+                            <div className="break-words leading-tight">{order.customerName}</div>
+                          </TableCell>
+                          <TableCell className="text-xs text-slate-600 px-1 py-1 max-w-20">
+                            <div className="break-words leading-tight">{order.shopName}</div>
+                          </TableCell>
+                          <TableCell className="text-xs text-slate-600 px-1 py-1 max-w-16">
+                            <div className="break-words leading-tight">{order.city}</div>
+                          </TableCell>
                           <TableCell className="font-bold text-xs text-emerald-600 px-1 py-1">₪{order.total}</TableCell>
                           <TableCell className="px-1 py-1">
                             <div className="flex gap-1">
@@ -433,31 +445,37 @@ const AdminDashboard = ({
                   <p>لا توجد طلبات</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                <div className="w-full max-h-96 overflow-y-auto">
                   <Table>
                     <TableHeader className="sticky top-0 bg-slate-50 z-10">
                       <TableRow>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-2">رقم الطلب</TableHead>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-2">العميل</TableHead>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-2">المتجر</TableHead>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-2">المدينة</TableHead>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-2">المبلغ</TableHead>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-2">الحالة</TableHead>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-2">إجراءات</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-16">رقم الطلب</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-20">العميل</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-20">المتجر</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-16">المدينة</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-16">المبلغ</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-14">الحالة</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-16">إجراءات</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredOrders.map(order => (
-                        <TableRow key={order.id} className="hover:bg-slate-50 h-10">
-                          <TableCell className="font-mono text-xs font-medium text-blue-600 px-2 cursor-pointer hover:underline py-2" onClick={() => openOrderDetails(order)}>
+                        <TableRow key={order.id} className="hover:bg-slate-50 h-12">
+                          <TableCell className="font-mono text-xs font-medium text-blue-600 px-1 cursor-pointer hover:underline py-1" onClick={() => openOrderDetails(order)}>
                             #{order.orderNumber}
                           </TableCell>
-                          <TableCell className="font-medium text-xs text-slate-800 px-2 py-2">{order.customerName}</TableCell>
-                          <TableCell className="text-xs text-slate-600 px-2 py-2">{order.shopName}</TableCell>
-                          <TableCell className="text-xs text-slate-600 px-2 py-2">{order.city}</TableCell>
-                          <TableCell className="font-bold text-xs text-emerald-600 px-2 py-2">₪{order.total}</TableCell>
-                          <TableCell className="px-2 py-2">{getStatusBadge(order.status)}</TableCell>
-                          <TableCell className="px-2 py-2">
+                          <TableCell className="font-medium text-xs text-slate-800 px-1 py-1 max-w-20">
+                            <div className="break-words leading-tight">{order.customerName}</div>
+                          </TableCell>
+                          <TableCell className="text-xs text-slate-600 px-1 py-1 max-w-20">
+                            <div className="break-words leading-tight">{order.shopName}</div>
+                          </TableCell>
+                          <TableCell className="text-xs text-slate-600 px-1 py-1 max-w-16">
+                            <div className="break-words leading-tight">{order.city}</div>
+                          </TableCell>
+                          <TableCell className="font-bold text-xs text-emerald-600 px-1 py-1">₪{order.total}</TableCell>
+                          <TableCell className="px-1 py-1">{getStatusBadge(order.status)}</TableCell>
+                          <TableCell className="px-1 py-1">
                             <div className="flex gap-1">
                               {order.status === 'pending' && (
                                 <>
@@ -588,17 +606,6 @@ const AdminDashboard = ({
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Analytics Button - Disabled */}
-      <div className="flex justify-center pt-8 pb-4">
-        <Button 
-          disabled
-          className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <BarChart3 className="h-5 w-5 mr-2" />
-          التحليلات المتقدمة (قريباً)
-        </Button>
-      </div>
 
       {/* Cancel Order Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useCart } from '@/hooks/useCart';
 import { useProducts } from '@/hooks/useProducts';
@@ -21,6 +22,7 @@ import AdminLogin from '@/components/AdminLogin';
 import AddProductModal from '@/components/AddProductModal';
 import ProductEditModal from '@/components/ProductEditModal';
 import AdminSettings from '@/components/AdminSettings';
+import StoreFooter from '@/components/StoreFooter';
 
 type ViewState = 'store' | 'checkout' | 'confirmation' | 'admin';
 
@@ -178,43 +180,46 @@ const Index = () => {
   };
 
   const renderStoreView = () => (
-    <StoreLayout>
-      <StoreHeader
-        isAdmin={isAdmin}
-        onAdminLogin={() => setShowAdminLogin(true)}
-        onAdminDashboard={() => setCurrentView('admin')}
-        onAddProduct={() => setShowAddProduct(true)}
-        onAdminSettings={() => setShowAdminSettings(true)}
-        onAdminLogout={adminLogout}
-      />
+    <div className="min-h-screen flex flex-col">
+      <StoreLayout>
+        <StoreHeader
+          isAdmin={isAdmin}
+          onAdminLogin={() => setShowAdminLogin(true)}
+          onAdminDashboard={() => setCurrentView('admin')}
+          onAddProduct={() => setShowAddProduct(true)}
+          onAdminSettings={() => setShowAdminSettings(true)}
+          onAdminLogout={adminLogout}
+        />
 
-      <CategoryFilter
-        categories={categories}
-        selectedCategory={selectedCategory}
-        onCategorySelect={setSelectedCategory}
-      />
+        <CategoryFilter
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategorySelect={setSelectedCategory}
+        />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
-        <div className="lg:col-span-3">
-          <ProductGrid
-            products={filteredProducts}
-            onAddToCart={cart.addToCart}
-            onEditProduct={handleEditProduct}
-            isAdmin={isAdmin}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+          <div className="lg:col-span-3">
+            <ProductGrid
+              products={filteredProducts}
+              onAddToCart={cart.addToCart}
+              onEditProduct={handleEditProduct}
+              isAdmin={isAdmin}
+            />
+          </div>
+
+          <div className="lg:col-span-1">
+            <Cart
+              items={cart.items}
+              onUpdateQuantity={cart.updateQuantity}
+              onRemoveItem={cart.removeFromCart}
+              total={cart.total}
+              onCheckout={handleCheckout}
+            />
+          </div>
         </div>
-
-        <div className="lg:col-span-1">
-          <Cart
-            items={cart.items}
-            onUpdateQuantity={cart.updateQuantity}
-            onRemoveItem={cart.removeFromCart}
-            total={cart.total}
-            onCheckout={handleCheckout}
-          />
-        </div>
-      </div>
-    </StoreLayout>
+      </StoreLayout>
+      <StoreFooter />
+    </div>
   );
 
   const renderCheckoutView = () => (
