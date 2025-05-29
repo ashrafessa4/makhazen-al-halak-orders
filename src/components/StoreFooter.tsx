@@ -5,7 +5,8 @@ const StoreFooter = () => {
       <div className="container mx-auto px-4 text-center">
         <div className="text-xs text-gray-600 space-y-1">
           <div>تم تطوير هذا الموقع بواسطة اشرف عيسى</div>
-          <div className="font-mono">972509617061</div>
+          <div className="font-mono">0509617061</div>
+          <div className="font-mono">نسخة 1.21</div>
         </div>
       </div>
     </footer>
