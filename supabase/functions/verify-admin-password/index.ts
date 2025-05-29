@@ -49,8 +49,16 @@ serve(async (req) => {
       )
     }
 
-    // Verify password using bcrypt
-    const isValidPassword = await bcrypt.compare(password, adminUser.password_hash)
+    // Check if password is already hashed (starts with $2)
+    let isValidPassword = false;
+    
+    if (adminUser.password_hash.startsWith('$2')) {
+      // Use bcrypt to verify hashed password
+      isValidPassword = await bcrypt.compare(password, adminUser.password_hash)
+    } else {
+      // For backwards compatibility, check plain text (should not happen after migration)
+      isValidPassword = password === adminUser.password_hash
+    }
 
     if (!isValidPassword) {
       return new Response(
