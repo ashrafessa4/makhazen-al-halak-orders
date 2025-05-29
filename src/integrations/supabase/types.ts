@@ -139,6 +139,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      verify_password: {
+        Args: { password: string; hash: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

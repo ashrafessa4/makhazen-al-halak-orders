@@ -1,4 +1,5 @@
 
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -14,6 +15,8 @@ serve(async (req) => {
 
   try {
     const { email, password } = await req.json()
+
+    console.log('🔍 Login attempt for email:', email)
 
     if (!email || !password) {
       return new Response(
@@ -39,7 +42,7 @@ serve(async (req) => {
       .single()
 
     if (error || !adminUser) {
-      console.log('Admin user not found:', error)
+      console.log('❌ Admin user not found:', error)
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid credentials' }),
         { 
@@ -49,23 +52,38 @@ serve(async (req) => {
       )
     }
 
-    console.log('Found admin user:', adminUser.email)
-    console.log('Password hash starts with:', adminUser.password_hash.substring(0, 10))
+    console.log('✅ Found admin user:', adminUser.email)
+    console.log('🔐 Password hash starts with:', adminUser.password_hash.substring(0, 10))
+    console.log('🔐 Full hash length:', adminUser.password_hash.length)
 
-    // Use PostgreSQL's crypt function to verify the password
-    // This is more reliable than importing bcrypt in Deno
-    const { data: verifyResult, error: verifyError } = await supabaseAdmin
-      .rpc('verify_password', {
-        password: password,
-        hash: adminUser.password_hash
-      })
-
-    if (verifyError) {
-      console.error('Password verification error:', verifyError)
-      // Fallback: if crypt function doesn't exist, check if it's a plain text password
-      const isValidPassword = password === adminUser.password_hash
+    // First, let's try to hash the incoming password and see if it matches
+    // Check if the stored password is already hashed or plain text
+    if (adminUser.password_hash.startsWith('$2a$') || adminUser.password_hash.startsWith('$2b$')) {
+      console.log('🔐 Using bcrypt verification via PostgreSQL function')
       
-      if (!isValidPassword) {
+      // Use PostgreSQL's crypt function to verify the password
+      const { data: verifyResult, error: verifyError } = await supabaseAdmin
+        .rpc('verify_password', {
+          password: password,
+          hash: adminUser.password_hash
+        })
+
+      console.log('🔐 PostgreSQL verify result:', verifyResult)
+      console.log('🔐 PostgreSQL verify error:', verifyError)
+
+      if (verifyError) {
+        console.error('❌ Password verification error:', verifyError)
+        return new Response(
+          JSON.stringify({ success: false, error: 'Password verification failed' }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        )
+      }
+
+      if (!verifyResult) {
+        console.log('❌ Password verification returned false')
         return new Response(
           JSON.stringify({ success: false, error: 'Invalid credentials' }),
           { 
@@ -74,17 +92,22 @@ serve(async (req) => {
           }
         )
       }
-    } else if (!verifyResult) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Invalid credentials' }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      )
+    } else {
+      // For plain text passwords (fallback)
+      console.log('🔐 Using plain text comparison')
+      if (password !== adminUser.password_hash) {
+        console.log('❌ Plain text password does not match')
+        return new Response(
+          JSON.stringify({ success: false, error: 'Invalid credentials' }),
+          { 
+            status: 401, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        )
+      }
     }
 
-    console.log('Password verification successful')
+    console.log('✅ Password verification successful')
 
     // Return success with admin user data (excluding password hash)
     const { password_hash, ...safeAdminUser } = adminUser
@@ -101,7 +124,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Password verification error:', error)
+    console.error('💥 Password verification error:', error)
     return new Response(
       JSON.stringify({ success: false, error: 'Internal server error' }),
       { 
@@ -111,3 +134,4 @@ serve(async (req) => {
     )
   }
 })
+
