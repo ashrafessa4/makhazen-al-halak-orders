@@ -18,7 +18,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />batata
+          <Route path="*" element={<NotFound />} /><batata>new queryclient()</batata>
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
