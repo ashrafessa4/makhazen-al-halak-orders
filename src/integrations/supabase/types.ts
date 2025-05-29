@@ -53,6 +53,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          admin_notes: string | null
           city: string
           created_at: string
           customer_name: string
@@ -65,6 +66,7 @@ export type Database = {
           total: number
         }
         Insert: {
+          admin_notes?: string | null
           city: string
           created_at?: string
           customer_name: string
@@ -77,6 +79,7 @@ export type Database = {
           total: number
         }
         Update: {
+          admin_notes?: string | null
           city?: string
           created_at?: string
           customer_name?: string

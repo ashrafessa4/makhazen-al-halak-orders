@@ -22,6 +22,7 @@ export interface Order {
   shopName: string;
   city: string;
   notes: string;
+  adminNotes?: string;
   items: CartItem[];
   total: number;
   date: Date;

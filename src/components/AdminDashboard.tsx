@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Order, Product } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -73,6 +72,7 @@ const AdminDashboard = ({
           shopName: order.shop_name,
           city: order.city,
           notes: order.notes || '',
+          adminNotes: order.admin_notes || '',
           items: order.items as any,
           total: Number(order.total),
           date: new Date(order.created_at),
@@ -156,21 +156,28 @@ const AdminDashboard = ({
         status: newStatus,
         admin_notes: note
       }).eq('id', orderId);
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Error updating order status:', error);
+        toast.error('حدث خطأ أثناء تحديث حالة الطلب');
+        return;
+      }
+      
       setOrders(prev => prev.map(order => order.id === orderId ? {
         ...order,
         status: newStatus,
         adminNotes: note
       } : order));
+      
       const statusText = newStatus === 'completed' ? 'تأكيد' : newStatus === 'cancelled' ? 'إلغاء' : 'إرجاع إلى الانتظار';
-      toast(`تم ${statusText} الطلب بنجاح`);
+      toast.success(`تم ${statusText} الطلب بنجاح`);
       setIsDialogOpen(false);
       setSelectedOrder(null);
       setStatusNote('');
       setPendingStatus(null);
     } catch (error) {
       console.error('Error updating order status:', error);
-      toast('حدث خطأ أثناء تحديث حالة الطلب');
+      toast.error('حدث خطأ أثناء تحديث حالة الطلب');
     }
   };
 
