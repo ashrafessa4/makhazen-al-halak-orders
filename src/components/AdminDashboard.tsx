@@ -304,28 +304,40 @@ const AdminDashboard = ({
 
       {/* Main Dashboard with 4 Tabs */}
       <Tabs defaultValue="pending" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm border">
-          <TabsTrigger value="pending" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm border h-auto">
+          <TabsTrigger 
+            value="pending" 
+            className="flex items-center gap-2 p-3 data-[state=active]:bg-amber-100 data-[state=active]:text-amber-800 data-[state=active]:border-amber-300 text-slate-700 hover:bg-slate-100"
+          >
             <Clock className="h-4 w-4" />
-            <span className="hidden sm:inline">الطلبات المعلقة</span>
-            <span className="sm:hidden">معلقة</span>
-            <Badge variant="secondary" className="text-xs">{pendingOrders.length}</Badge>
+            <span className="hidden sm:inline font-medium">الطلبات المعلقة</span>
+            <span className="sm:hidden font-medium">معلقة</span>
+            <Badge variant="secondary" className="text-xs bg-amber-200 text-amber-800">{pendingOrders.length}</Badge>
           </TabsTrigger>
-          <TabsTrigger value="all" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="all" 
+            className="flex items-center gap-2 p-3 data-[state=active]:bg-blue-100 data-[state=active]:text-blue-800 data-[state=active]:border-blue-300 text-slate-700 hover:bg-slate-100"
+          >
             <ShoppingCart className="h-4 w-4" />
-            <span className="hidden sm:inline">جميع الطلبات</span>
-            <span className="sm:hidden">الكل</span>
-            <Badge variant="secondary" className="text-xs">{orders.length}</Badge>
+            <span className="hidden sm:inline font-medium">جميع الطلبات</span>
+            <span className="sm:hidden font-medium">الكل</span>
+            <Badge variant="secondary" className="text-xs bg-blue-200 text-blue-800">{orders.length}</Badge>
           </TabsTrigger>
-          <TabsTrigger value="top" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="top" 
+            className="flex items-center gap-2 p-3 data-[state=active]:bg-green-100 data-[state=active]:text-green-800 data-[state=active]:border-green-300 text-slate-700 hover:bg-slate-100"
+          >
             <TrendingUp className="h-4 w-4" />
-            <span className="hidden sm:inline">الأكثر مبيعاً</span>
-            <span className="sm:hidden">الأكثر</span>
+            <span className="hidden sm:inline font-medium">الأكثر مبيعاً</span>
+            <span className="sm:hidden font-medium">الأكثر</span>
           </TabsTrigger>
-          <TabsTrigger value="least" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="least" 
+            className="flex items-center gap-2 p-3 data-[state=active]:bg-red-100 data-[state=active]:text-red-800 data-[state=active]:border-red-300 text-slate-700 hover:bg-slate-100"
+          >
             <Package className="h-4 w-4" />
-            <span className="hidden sm:inline">الأقل مبيعاً</span>
-            <span className="sm:hidden">الأقل</span>
+            <span className="hidden sm:inline font-medium">الأقل مبيعاً</span>
+            <span className="sm:hidden font-medium">الأقل</span>
           </TabsTrigger>
         </TabsList>
 
@@ -345,29 +357,29 @@ const AdminDashboard = ({
                   <p>لا توجد طلبات معلقة</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="w-full">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-2">رقم الطلب</TableHead>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-2">العميل</TableHead>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-2">المتجر</TableHead>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-2">المدينة</TableHead>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-2">المبلغ</TableHead>
-                        <TableHead className="text-slate-700 font-semibold text-xs px-2">إجراءات</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-2 w-20">رقم الطلب</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-24">العميل</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-24">المتجر</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-20">المدينة</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-20">المبلغ</TableHead>
+                        <TableHead className="text-slate-700 font-semibold text-xs px-1 w-20">إجراءات</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {pendingOrders.map(order => (
-                        <TableRow key={order.id} className="hover:bg-slate-50 h-10">
-                          <TableCell className="font-mono text-xs font-medium text-blue-600 px-2 cursor-pointer hover:underline py-2" onClick={() => openOrderDetails(order)}>
+                        <TableRow key={order.id} className="hover:bg-slate-50 h-8">
+                          <TableCell className="font-mono text-xs font-medium text-blue-600 px-2 cursor-pointer hover:underline py-1" onClick={() => openOrderDetails(order)}>
                             #{order.orderNumber}
                           </TableCell>
-                          <TableCell className="font-medium text-xs text-slate-800 px-2 py-2">{order.customerName}</TableCell>
-                          <TableCell className="text-xs text-slate-600 px-2 py-2">{order.shopName}</TableCell>
-                          <TableCell className="text-xs text-slate-600 px-2 py-2">{order.city}</TableCell>
-                          <TableCell className="font-bold text-xs text-emerald-600 px-2 py-2">₪{order.total}</TableCell>
-                          <TableCell className="px-2 py-2">
+                          <TableCell className="font-medium text-xs text-slate-800 px-1 py-1 truncate max-w-24">{order.customerName}</TableCell>
+                          <TableCell className="text-xs text-slate-600 px-1 py-1 truncate max-w-24">{order.shopName}</TableCell>
+                          <TableCell className="text-xs text-slate-600 px-1 py-1 truncate max-w-20">{order.city}</TableCell>
+                          <TableCell className="font-bold text-xs text-emerald-600 px-1 py-1">₪{order.total}</TableCell>
+                          <TableCell className="px-1 py-1">
                             <div className="flex gap-1">
                               <Button size="sm" className="h-6 w-6 p-0 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => openStatusDialog(order, 'completed')}>
                                 <Check className="h-3 w-3" />
