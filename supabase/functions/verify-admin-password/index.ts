@@ -1,7 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -40,6 +39,7 @@ serve(async (req) => {
       .single()
 
     if (error || !adminUser) {
+      console.log('Admin user not found:', error)
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid credentials' }),
         { 
@@ -49,18 +49,32 @@ serve(async (req) => {
       )
     }
 
-    // Check if password is already hashed (starts with $2)
-    let isValidPassword = false;
-    
-    if (adminUser.password_hash.startsWith('$2')) {
-      // Use bcrypt to verify hashed password
-      isValidPassword = await bcrypt.compare(password, adminUser.password_hash)
-    } else {
-      // For backwards compatibility, check plain text (should not happen after migration)
-      isValidPassword = password === adminUser.password_hash
-    }
+    console.log('Found admin user:', adminUser.email)
+    console.log('Password hash starts with:', adminUser.password_hash.substring(0, 10))
 
-    if (!isValidPassword) {
+    // Use PostgreSQL's crypt function to verify the password
+    // This is more reliable than importing bcrypt in Deno
+    const { data: verifyResult, error: verifyError } = await supabaseAdmin
+      .rpc('verify_password', {
+        password: password,
+        hash: adminUser.password_hash
+      })
+
+    if (verifyError) {
+      console.error('Password verification error:', verifyError)
+      // Fallback: if crypt function doesn't exist, check if it's a plain text password
+      const isValidPassword = password === adminUser.password_hash
+      
+      if (!isValidPassword) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Invalid credentials' }),
+          { 
+            status: 401, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        )
+      }
+    } else if (!verifyResult) {
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid credentials' }),
         { 
@@ -69,6 +83,8 @@ serve(async (req) => {
         }
       )
     }
+
+    console.log('Password verification successful')
 
     // Return success with admin user data (excluding password hash)
     const { password_hash, ...safeAdminUser } = adminUser
