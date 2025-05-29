@@ -46,7 +46,7 @@ export const sendWhatsAppNotification = (order: Order, phoneNumber: string) => {
   }).format(order.date);
 
   const message = `🛒 *طلب جديد رقم ${order.orderNumber}*
-  📅 *التاريخ:* ${formattedDate}
+📅 *التاريخ:* ${formattedDate}
 
 👤 *العميل:* ${order.customerName}
 🏪 *المتجر:* ${order.shopName}
