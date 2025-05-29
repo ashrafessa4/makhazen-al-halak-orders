@@ -35,17 +35,14 @@ export const generateOrderNumber = async (): Promise<string> => {
 
 export const sendWhatsAppNotification = (order: Order, phoneNumber: string) => {
   const itemsList = order.items
-    .map(item => `🔹 (${item.quantity}) ${item.product.name} - ₪${item.product.price * item.quantity}`)
+    .map(item => `🔹 (${item.quantity}x) ${item.product.name} - ₪${item.product.price * item.quantity}`)
     .join('\n');
 
   // Format date using English locale to ensure Western numerals
   const formattedDate = new Intl.DateTimeFormat('en-GB', {
     year: 'numeric',
     month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
+    day: '2-digit'
   }).format(order.date);
 
   const message = `🛒 *طلب جديد رقم ${order.orderNumber}*
@@ -61,10 +58,7 @@ ${itemsList}
 
 📝 *ملاحظات العميل:* ${order.notes || 'لا توجد ملاحظات'}
 
-📅 *التاريخ والوقت:* ${formattedDate}
-
----
-✅ يرجى تأكيد استلام هذا الطلب`;
+📅 *التاريخ والوقت:* ${formattedDate};
 
   const encodedMessage = encodeURIComponent(message);
   const whatsappUrl = `https://wa.me/${phoneNumber.replace(/[^0-9]/g, '')}?text=${encodedMessage}`;
